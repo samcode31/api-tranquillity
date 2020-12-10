@@ -1,0 +1,397 @@
+1K,59,24,1K
+1K,38,25,1K
+1K,68,28,1K
+1K,34,31,1K
+1K,7,33,1K
+1K,90,41,1K
+1K,25,48,1K
+1K,64,49,1K
+1K,3,54,1K
+1K,85,81,1K
+1K,22,82,1K
+1K,56,92,1K
+1K,15,93,1K
+1L,59,24,1L
+1L,38,25,1L
+1L,8,28,1L
+1L,9,31,1L
+1L,46,33,1L
+1L,90,41,1L
+1L,40,48,1L
+1L,60,49,1L
+1L,3,54,1L
+1L,41,81,1L
+1L,5,82,1L
+1L,56,92,1L
+1L,15,93,1L
+1M,83,24,1M
+1M,89,25,1M
+1M,68,28,1M
+1M,65,31,1M
+1M,71,33,1M
+1M,90,41,1M
+1M,5,48,1M
+1M,64,49,1M
+1M,3,54,1M
+1M,85,81,1M
+1M,48,82,1M
+1M,14,92,1M
+1M,15,93,1M
+1X,83,24,1X
+1X,38,25,1X
+1X,8,28,1X
+1X,78,31,1X
+1X,67,33,1X
+1X,82,38,1X
+1X,90,41,1X
+1X,48,48,1X
+1X,64,49,1X
+1X,45,54,1X
+1X,41,81,1X
+1X,48,82,1X
+1X,80,92,1X
+1X,15,93,1X
+1Y,48,24,1Y
+1Y,89,25,1Y
+1Y,68,28,1Y
+1Y,73,31,1Y
+1Y,46,33,1Y
+1Y,82,38,1Y
+1Y,90,41,1Y
+1Y,40,48,1Y
+1Y,62,49,1Y
+1Y,45,54,1Y
+1Y,41,81,1Y
+1Y,48,82,1Y
+1Y,53,92,1Y
+1Y,15,93,1Y
+1Z,59,24,1Z
+1Z,20,25,1Z
+1Z,8,28,1Z
+1Z,12,31,1Z
+1Z,75,33,1Z
+1Z,67,33,1Z
+1Z,67,33,1Z
+1Z,82,38,1Z
+1Z,90,41,1Z
+1Z,21,48,1Z
+1Z,21,48,1Z
+1Z,45,54,1Z
+1Z,85,81,1Z
+1Z,59,82,1Z
+1Z,52,92,1Z
+1Z,15,93,1Z
+2K,84,24,2K
+2K,8,28,2K
+2K,88,31,2K
+2K,76,33,2K
+2K,82,38,2K
+2K,81,41,2K
+2K,48,48,2K
+2K,62,49,2K
+2K,58,51,2K
+2K,45,54,2K
+2K,22,70,2K
+2K,85,81,2K
+2K,63,92,2K
+2K,15,93,2K
+2L,59,24,2L
+2L,68,28,2L
+2L,61,31,2L
+2L,10,33,2L
+2L,82,38,2L
+2L,81,41,2L
+2L,5,48,2L
+2L,64,49,2L
+2L,28,51,2L
+2L,45,54,2L
+2L,5,70,2L
+2L,85,81,2L
+2L,56,92,2L
+2L,15,93,2L
+2M,84,24,2M
+2M,68,28,2M
+2M,73,31,2M
+2M,67,33,2M
+2M,67,33,2M
+2M,81,41,2M
+2M,6,48,2M
+2M,64,49,2M
+2M,47,51,2M
+2M,3,54,2M
+2M,22,70,2M
+2M,41,81,2M
+2M,77,92,2M
+2M,15,93,2M
+2X,6,24,2X
+2X,8,28,2X
+2X,54,31,2X
+2X,32,33,2X
+2X,81,41,2X
+2X,40,48,2X
+2X,64,49,2X
+2X,42,51,2X
+2X,3,54,2X
+2X,25,70,2X
+2X,41,81,2X
+2X,80,92,2X
+2X,15,93,2X
+2Y,21,24,2Y
+2Y,8,28,2Y
+2Y,11,31,2Y
+2Y,31,33,2Y
+2Y,81,41,2Y
+2Y,5,48,2Y
+2Y,2,51,2Y
+2Y,45,54,2Y
+2Y,21,70,2Y
+2Y,21,70,2Y
+2Y,41,81,2Y
+2Y,63,92,2Y
+2Y,15,93,2Y
+2Z,59,24,2Z
+2Z,8,28,2Z
+2Z,12,31,2Z
+2Z,50,33,2Z
+2Z,90,41,2Z
+2Z,35,48,2Z
+2Z,60,49,2Z
+2Z,45,54,2Z
+2Z,35,70,2Z
+2Z,35,70,2Z
+2Z,41,81,2Z
+2Z,1,92,2Z
+2Z,15,93,2Z
+3K,59,24,3K
+3K,78,31,3K
+3K,76,33,3K
+3K,19,41,3K
+3K,43,48,3K
+3K,64,49,3K
+3K,30,51,3K
+3K,45,54,3K
+3K,22,70,3K
+3K,41,81,3K
+3K,25,82,3K
+3K,30,92,3K
+3K,15,93,3K
+3L,21,24,3L
+3L,61,31,3L
+3L,7,33,3L
+3L,81,41,3L
+3L,48,48,3L
+3L,2,51,3L
+3L,3,54,3L
+3L,25,70,3L
+3L,41,81,3L
+3L,25,82,3L
+3L,1,92,3L
+3L,15,93,3L
+3M,6,24,3M
+3M,34,31,3M
+3M,75,33,3M
+3M,19,41,3M
+3M,35,48,3M
+3M,62,49,3M
+3M,51,51,3M
+3M,3,54,3M
+3M,25,70,3M
+3M,25,70,3M
+3M,41,81,3M
+3M,22,82,3M
+3M,80,92,3M
+3M,15,93,3M
+3X,25,24,3X
+3X,25,24,3X
+3X,9,31,3X
+3X,86,33,3X
+3X,82,38,3X
+3X,19,41,3X
+3X,48,48,3X
+3X,64,49,3X
+3X,89,51,3X
+3X,3,54,3X
+3X,22,70,3X
+3X,22,70,3X
+3X,41,81,3X
+3X,48,82,3X
+3X,53,92,3X
+3X,15,93,3X
+3Y,84,24,3Y
+3Y,88,31,3Y
+3Y,50,33,3Y
+3Y,82,38,3Y
+3Y,19,41,3Y
+3Y,40,48,3Y
+3Y,62,49,3Y
+3Y,58,51,3Y
+3Y,3,54,3Y
+3Y,22,70,3Y
+3Y,41,81,3Y
+3Y,48,82,3Y
+3Y,56,92,3Y
+3Y,15,93,3Y
+3Z,59,24,3Z
+3Z,69,31,3Z
+3Z,10,33,3Z
+3Z,81,41,3Z
+3Z,59,48,3Z
+3Z,60,49,3Z
+3Z,20,51,3Z
+3Z,45,54,3Z
+3Z,22,70,3Z
+3Z,22,70,3Z
+3Z,41,81,3Z
+3Z,48,82,3Z
+3Z,52,92,3Z
+3Z,15,93,3Z
+4 Agriculture,30,2,4Agri
+4 Agriculture,51,2,4Agri
+4 Agriculture,73,18,4Agri
+4 Agriculture,4,30,4Agri
+4 Agriculture,75,33,4Agri
+4 Agriculture,76,33,4Agri
+4 Agriculture,70,45,4Agri
+4 Agriculture,43,48,4Agri
+4 Business,23,15,4Bus
+4 Business,23,15,4Bus
+4 Business,72,15,4Bus
+4 Business,70,17,4Bus
+4 Business,88,18,4Bus
+4 Business,75,33,4Bus
+4 Business,16,44,4Bus
+4 Business,16,44,4Bus
+4 Business,18,45,4Bus
+4 Home Ec 2,23,23,4HE2
+4 Home Ec 3,74,21,4HE3
+4 Home Ec 3,44,54,4HE3
+4 Physical Education,34,18,4PE
+4 Physical Education,50,33,4PE
+4 Physical Education,19,41,4PE
+4 Physical Education,72,45,4PE
+4 Physical Education,35,48,4PE
+4 Physical Education,35,48,4PE
+4 Science,4,4,4Sci
+4 Science,56,9,4Sci
+4 Science,78,18,4Sci
+4 Science,46,33,4Sci
+4 Science,53,42,4Sci
+4 Secretarial,39,17,4Sec
+4 Secretarial,54,18,4Sec
+4 Secretarial,10,33,4Sec
+4 Secretarial,39,40,4Sec
+4 Secretarial,16,44,4Sec
+4 Secretarial,16,44,4Sec
+4 Secretarial,29,45,4Sec
+4 Secretarial,40,48,4Sec
+4 Tech 1,11,18,4T1
+4 Tech 1,71,33,4T1
+4 Tech 1,80,42,4T1
+4 Tech 1,37,45,4T1
+4 Tech 1,58,64,4T1
+4 Tech 2,9,18,4T2
+4 Tech 2,77,30,4T2
+4 Tech 2,75,33,4T2
+4 Tech 2,27,45,4T2
+4 Tech 3,34,18,4T3
+4 Tech 3,77,30,4T3
+4 Tech 3,31,33,4T3
+4 Tech 3,18,45,4T3
+4 Tech 3,28,83,4T3
+4 Tech 4,26,16,4T4
+4 Tech 4,26,16,4T4
+4 Tech 4,9,18,4T4
+4 Tech 4,4,30,4T4
+4 Tech 4,7,33,4T4
+4 Tech 4,29,45,4T4
+5 Agriculture,51,2,5Agri
+5 Agriculture,47,2,5Agri
+5 Agriculture,69,18,5Agri
+5 Agriculture,14,30,5Agri
+5 Agriculture,32,33,5Agri
+5 Agriculture,37,45,5Agri
+5 Agriculture,43,48,5Agri
+5 Business,23,15,5Bus
+5 Business,23,15,5Bus
+5 Business,72,15,5Bus
+5 Business,39,17,5Bus
+5 Business,69,18,5Bus
+5 Business,67,33,5Bus
+5 Business,67,33,5Bus
+5 Business,16,44,5Bus
+5 Business,16,44,5Bus
+5 Business,18,45,5Bus
+5 Business,64,49,5Bus
+5 Creative Art,12,18,5CA
+5 Creative Art,50,33,5CA
+5 Creative Art,82,38,5CA
+5 Creative Art,43,48,5CA
+5 Creative Art,45,54,5CA
+5 Creative Art,85,81,5CA
+5 Home Ec 2,23,23,5HE2
+5 Phys Ed,33,18,5PE
+5 Phys Ed,52,26,5PE
+5 Phys Ed,19,41,5PE
+5 Phys Ed,13,45,5PE
+5 Phys Ed,21,48,5PE
+5 Science,71,1,5Sci
+5 Science,52,4,5Sci
+5 Science,1,9,5Sci
+5 Science,61,18,5Sci
+5 Science,7,33,5Sci
+5 Science,80,42,5Sci
+5 Secretarial,70,17,5Sec
+5 Secretarial,73,18,5Sec
+5 Secretarial,71,33,5Sec
+5 Secretarial,39,40,5Sec
+5 Secretarial,16,44,5Sec
+5 Secretarial,16,44,5Sec
+5 Secretarial,27,45,5Sec
+5 Secretarial,60,49,5Sec
+5 Tech 1,61,18,5T1
+5 Tech 1,50,33,5T1
+5 Tech 1,76,33,5T1
+5 Tech 1,76,33,5T1
+5 Tech 1,53,42,5T1
+5 Tech 1,37,45,5T1
+5 Tech 1,58,64,5T1
+5 Tech 2,88,18,5T2
+5 Tech 2,10,33,5T2
+5 Tech 2,27,45,5T2
+5 Tech 3,26,16,5T3
+5 Tech 3,26,16,5T3
+5 Tech 3,79,45,5T3
+Lower 6,23,15,6Lw
+Lower 6,33,61,6Lw
+Lower 6,54,61,6Lw
+Lower 6,13,65,6Lw
+Lower 6,13,65,6Lw
+Lower 6,29,75,6Lw
+Lower 6,29,75,6Lw
+Lower 6,79,75,6Lw
+Lower 6,79,75,6Lw
+Lower 6,40,78,6Lw
+Lower 6,40,78,6Lw
+Lower 6,35,78,6Lw
+Lower 6,35,78,6Lw
+Lower 6,84,79,6Lw
+Lower 6,84,79,6Lw
+Lower 6,83,79,6Lw
+Lower 6,83,79,6Lw
+Upper 6,23,15,6Up
+Upper 6,43,60,6Up
+Upper 6,21,60,6Up
+Upper 6,18,65,6Up
+Upper 6,18,65,6Up
+Upper 6,37,75,6Up
+Upper 6,37,75,6Up
+Upper 6,72,75,6Up
+Upper 6,72,75,6Up
+Upper 6,43,78,6Up
+Upper 6,43,78,6Up
+Upper 6,40,78,6Up
+Upper 6,40,78,6Up
+Upper 6,27,79,6Up
+Upper 6,27,79,6Up
+Upper 6,72,79,6Up
+Upper 6,72,79,6Up
