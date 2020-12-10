@@ -21,6 +21,7 @@ use App\Http\Controllers\StudentTermDetail;
 use App\Http\Controllers\StudentTermMark;
 use App\Http\Controllers\Subject;
 use App\Http\Controllers\TeacherLesson;
+use App\Http\Controllers\TeacherLessonController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPermissionsAssignment;
 use App\Models\EthnicGroup;
@@ -176,6 +177,8 @@ Route::post('/upload-form-classes', [FormClass::class, 'upload']);
 Route::post('/upload-students', [StudentController::class, 'upload']);
 
 Route::post('/upload-user-permissions', [UserPermissionsAssignment::class, 'upload']);
+
+Route::post('/upload-teacher-timetable', [TeacherLessonController::class, 'upload']);
 
 Route::post('/upload-student-subject-assignment', [StudentSubjectAssignment::class, 'upload']);
 

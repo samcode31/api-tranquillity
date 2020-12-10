@@ -30,7 +30,7 @@ class TeacherLessonController extends Controller
         //return $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,2)->getValue();
         $rows = $spreadsheet->getActiveSheet()->getHighestDataRow();
         //return $classId = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(28,2)->getValue();
-        //return $rows;
+        return $rows;
         $records = 0;
         for($i = 2; $i <= $rows; $i++){
             $id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue();

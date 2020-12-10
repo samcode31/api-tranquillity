@@ -102,7 +102,7 @@ class Employee extends Controller
                 ]);
                 if($user->wasRecentlyCreated){
                     $records++;
-                    for($j = 1; $j < 3; $j++){
+                    for($j = 1; $j < 4; $j++){
                         UserPermissionsAssignment::create([
                             'user_id' => $user->id,
                             'permission_id' => $j

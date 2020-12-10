@@ -249,7 +249,7 @@ class ReportCard extends Controller
             $this->fpdf->SetFont('Times', 'B', 10);           
             
             
-            $this->Row(array("Subject", "Course Mark %", "Exam Mark %", "Highest Exam Mark", "Grade In Exam", "Subject Teacher Comment"),);
+            $this->Row(array("Subject", "Course Mark %", "Exam Mark %", "Highest Exam Mark", "Grade In Exam", "Subject Teacher Comment"),true);
             //$this->fpdf->SetTextColor(32, 32, 32);
             $this->SetAligns(array('L', 'C', 'C', 'C', 'C', 'L'));
             $this->fpdf->SetFont('Times', '', 11);
