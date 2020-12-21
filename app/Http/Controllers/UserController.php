@@ -9,6 +9,7 @@ use App\Models\UserEmployee;
 use App\Models\UserStudent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Response;
 
 class UserController extends Controller
 {
@@ -58,7 +59,21 @@ class UserController extends Controller
 
     public function userEmployee($name)
     {        
-        return UserEmployee::whereName($name)->firstOrFail();
+        //return UserEmployee::whereName($name)->firstOrFail();
+        $userEmployee = UserEmployee::whereName($name);
+        if($userEmployee->exists())
+        {
+            $userEmployee = $userEmployee->first();
+            $employee = $userEmployee->employee;
+            //return $userEmployee->employee;
+            return [
+                'employee_id' => $userEmployee->employee_id,
+                'first_name' => $employee->first_name,
+                'last_name' => $employee->last_name,
+                'password_reset' => $userEmployee->password_reset
+            ];
+        } 
+        return response('Username not found', 404);
     }
 
     public function resetPassword(Request $request){        
@@ -114,5 +129,21 @@ class UserController extends Controller
         if($userEmployee->wasChanged('password')) return ["change" => true, "message" => "Password Changed Successfully."];
         return ["change" => false, "message"=> "Password Not Changed"];
         
+    }
+
+    public function resetEmployeePassword(Request $request)
+    {
+        $employee_id = $request->input('employee_id');
+        $length = 6;
+        $password = substr(str_shuffle(
+            str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) 
+        )),1,$length);
+        $userEmployee = UserEmployee::whereEmployeeId($employee_id)->first();
+        $userEmployee->password = Hash::make($password);
+        $userEmployee->password_reset = 1;
+        $userEmployee->remember_token = $password;
+        $userEmployee->save();
+        if($userEmployee->wasChanged('password')) return $userEmployee;
+        return response('Password not changed', 417);
     }
 }

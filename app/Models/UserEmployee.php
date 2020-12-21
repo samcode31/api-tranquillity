@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserEmployee extends Authenticatable
 {
@@ -16,6 +17,7 @@ class UserEmployee extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +31,8 @@ class UserEmployee extends Authenticatable
         'password',
     ];
 
+    protected $dates = ['deleted_at'];
+
     protected $guard = 'employee';
     
     /**
@@ -37,9 +41,17 @@ class UserEmployee extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password',        
         'two_factor_recovery_codes',
         'two_factor_secret',
+        'current_team_id',
+        'created_at',
+        'updated_at'
     ];
+
+    
+
+    public function employee(){
+        return $this->belongsTo('App\Models\Employee');
+    }
 }

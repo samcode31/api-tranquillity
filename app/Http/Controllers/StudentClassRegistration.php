@@ -6,6 +6,7 @@ use App\Models\AcademicTerm;
 use App\Models\Student;
 use App\Models\StudentClassRegistration as ModelsStudentClassRegistration;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 
 class StudentClassRegistration extends Controller
 {
@@ -31,5 +32,30 @@ class StudentClassRegistration extends Controller
         }
 
         return $registered;
+    }
+
+    public function upload()
+    {
+        $academicTerm = AcademicTerm::whereIsCurrent(1)->first();
+        $academic_year_id = $academicTerm->academic_year_id;
+        $file = './files/student_class_registrations.xlsx';
+        $reader = new Xlsx();
+        $spreadsheet = $reader->load($file);
+        $rows = $spreadsheet->getActiveSheet()->getHighestDataRow();
+        //return $rows;
+        
+        for($i = 2; $i <= $rows; $i++){            
+            $student_id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(1,$i)->getValue();
+            $form_class_id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(4,$i)->getValue();
+            ModelsStudentClassRegistration::updateOrCreate(
+                ['student_id' => $student_id, 'academic_year_id' => $academic_year_id ],
+                [
+                    'student_id' => $student_id,
+                    'form_class_id' => $form_class_id,
+                    'academic_year_id' => $academic_year_id
+                ]
+            );
+            
+        }    
     }
 }

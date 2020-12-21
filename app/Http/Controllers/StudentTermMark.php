@@ -30,7 +30,7 @@ class StudentTermMark extends Controller
             ['academic_year_id', $yearId]
         ])->get();                     
         //return $studentsRegistered;     
-        if($formLevel < 4){
+        if($formLevel < 6){
             //lower school
             $total = $studentsRegistered->count();            
             foreach($studentsRegistered as $student)

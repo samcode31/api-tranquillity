@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\AcademicTerm;
+use App\Http\Controllers\ClassList;
 use App\Http\Controllers\CommentTemplate;
 use App\Http\Controllers\Employee;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\FormClass;
+use App\Http\Controllers\FormDeanAssignment;
 use App\Http\Controllers\FormTeacherAssignment;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegistrationFormController;
@@ -21,7 +23,6 @@ use App\Http\Controllers\StudentTermDetail;
 use App\Http\Controllers\StudentTermMark;
 use App\Http\Controllers\Subject;
 use App\Http\Controllers\TeacherLesson;
-use App\Http\Controllers\TeacherLessonController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPermissionsAssignment;
 use App\Models\EthnicGroup;
@@ -52,6 +53,8 @@ use Illuminate\Validation\ValidationException;
 Route::get('/user/{id}', [UserController::class, 'user']);
 
 Route::post('/reset-password', [UserController::class, 'resetPassword']);
+
+Route::post('/reset-employee-password', [UserController::class, 'resetEmployeePassword']);
 
 Route::post('/change-password', [UserController::class, 'changePassword']);
 
@@ -102,10 +105,6 @@ Route::get('/registration-report/{classId}', [RegistrationReportController::clas
 
 Route::post('/employee-login', [LoginController::class, 'authenticateEmployee']);
 
-Route::get('/user-employee/{name}', [UserController::class, 'userEmployee']);
-
-Route::get('/employee/{id}', [Employee::class, 'index']);
-
 Route::post('/employee-change-password', [UserController::class, 'employeeChangePassword']);
 
 Route::get('/current-period', [AcademicTerm::class, 'show']);
@@ -120,17 +119,33 @@ Route::post('/register-students', [StudentClassRegistration::class, 'register'])
 
 Route::get('/teacher-lessons/{id}', [TeacherLessonController::class, 'show']);
 
-Route::get('/employees', [Employee::class, 'show']);
-
 Route::get('/form-classes-list', [FormClass::class, 'show']); 
 
 Route::get('/subjects', [Subject::class, 'show']);
+
+//-----------------------------Employee -------------------------------------
+
+Route::get('/employees', [Employee::class, 'show']);
+
+Route::delete('/employee', [Employee::class, 'delete']);
+
+Route::post('/employee', [Employee::class, 'store']);
+
+Route::get('/employee-statuses', [Employee::class, 'status']);
+
+Route::get('/user-employee/{name}', [UserController::class, 'userEmployee']);
+
+Route::get('/employee/{id}', [Employee::class, 'index']);
 
 Route::get('/teacher-lessons/{id}', [TeacherLesson::class, 'show']);
 
 Route::get('/form-teacher-class/{id}/{year}', [FormTeacherAssignment::class, 'show']);
 
 Route::post('/form-teacher-class', [FormTeacherAssignment::class, 'store']);
+
+Route::get('/form-dean-assignments/{id}', [FormDeanAssignment::class, 'show']);
+
+Route::post('/form-dean-assignments', [FormDeanAssignment::class, 'store']);
 
 Route::post('/teacher-lesson', [TeacherLesson::class, 'store']);
 
@@ -158,15 +173,23 @@ Route::get('/report-cards/{termId}/{classId}', [ReportCard::class, 'show']);
 
 Route::get('/report-card/{id}/{termId}', [ReportCard::class, 'showOne']);
 
+Route::get('/class-list/{class_id}/{yearId}', [ClassList::class, 'show']);
+
 //----------------------------- Students --------------------------------------
 
 Route::get('/students', [StudentController::class, 'show']);
+
+Route::post('/student', [StudentController::class, 'store']);
+
+Route::delete('/student', [StudentController::class, 'delete']);
 
 Route::post('/student-subject-assignment', [StudentSubjectAssignment::class, 'store']);
 
 Route::get('/subject-students/{subjectId}', [StudentSubjectAssignment::class, 'show']);
 
 Route::post('/delete-student-subject-assignment', [StudentSubjectAssignment::class, 'delete']);
+
+Route::get('/student-status', [StudentController::class, 'status']);
 
 //-------------------------- Upload Data -------------------------------------
 
@@ -178,8 +201,10 @@ Route::post('/upload-students', [StudentController::class, 'upload']);
 
 Route::post('/upload-user-permissions', [UserPermissionsAssignment::class, 'upload']);
 
-Route::post('/upload-teacher-timetable', [TeacherLessonController::class, 'upload']);
-
 Route::post('/upload-student-subject-assignment', [StudentSubjectAssignment::class, 'upload']);
+
+Route::post('/upload-student-class-registration', [StudentClassRegistration::class, 'upload']);
+
+Route::post('/upload-teacher-lessons', [TeacherLesson::class, 'upload']);
 
 

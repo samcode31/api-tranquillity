@@ -35,8 +35,8 @@ class TeacherLesson extends Controller
         //return $rows;
         $records = 0;
         for($i = 2; $i <= $rows; $i++){
-            $id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue();
             $formClass = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(1,$i)->getValue();
+            $id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue();            
             $subjectId = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue();            
             $lesson = ModelsTeacherLesson::updateOrCreate(
                 [

@@ -59,14 +59,15 @@ class StudentTermDetail extends Controller
             ['student_term_details.form_class_id', $formClass]
         ])
         ->orderBy('last_name')
-        ->paginate(1);        
+        ->get();        
 
         return $records;       
     }
 
     public function store(Request $request)
     {        
-        $record = ModelsStudentTermDetail::updateOrCreate(
+        $data = [];
+        $student_term_detail = ModelsStudentTermDetail::updateOrCreate(
             [
                 'student_id' => $request->student_id,                
                 'academic_term_id' => $request->academic_term_id,
@@ -86,6 +87,22 @@ class StudentTermDetail extends Controller
             ]
         );
 
-        return $record;
+        $student_dean_comment = StudentDeanComment::updateOrCreate(
+            [
+                'student_id' => $request->student_id,                
+                'academic_term_id' => $request->academic_term_id,
+            ],
+            [
+                'student_id' => $request->student_id,                
+                'academic_term_id' => $request->academic_term_id,
+                'comment' => $request->dean_comment,
+                'employee_id' => $request->employee_id,
+            ]
+        );
+
+        $data['student_term_details'] = $student_term_detail;
+        $data['student_dean_comment'] = $student_dean_comment;
+
+        return $data;
     }
 }
