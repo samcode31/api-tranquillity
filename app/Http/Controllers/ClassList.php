@@ -89,9 +89,9 @@ class ClassList extends Controller
             $this->fpdf->Cell(10, 6, $count , $border , 0, 'C');
             $this->fpdf->Cell(20, 6, $record['student_id'] , $border, 0, 'C');
             $this->fpdf->Cell(10, 6, '', $border, 0, 'C');
-            $this->fpdf->Cell(50, 6, $record['first_name'].', '.$record['last_name'] , $border, 0,  'L');
+            $this->fpdf->Cell(50, 6, $record['first_name'].' '.$record['last_name'] , $border, 0,  'L');
             $this->fpdf->Cell(25, 6, $record['gender'] , $border, 0,  'C');
-            $this->fpdf->Cell(25, 6, $dob, $border, 0,  'C');
+            $this->fpdf->Cell(25, 6, $dob, $border, 0,  'R');
             $this->fpdf->Cell(5, 6, '', $border, 0, 'C');
             $this->fpdf->Cell(31, 6, $record['birth_certificate_pin'] , $border, 0, 'C');
             $this->fpdf->Ln();
@@ -134,7 +134,7 @@ class ClassList extends Controller
         $address = config('app.school_address');
         $contact = config('app.school_contact');
 
-        $this->fpdf->Image($logo, 10, 9, 12);
+        $this->fpdf->Image($logo, 10, 9, 16);
         $this->fpdf->SetFont('Times', 'B', '18');
         
         //$this->fpdf->SetTextColor(50, 52, 155);

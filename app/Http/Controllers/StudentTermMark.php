@@ -52,11 +52,11 @@ class StudentTermMark extends Controller
                         ['subject_id', $subjectId]
                     ])->first();
                     $studentMarkRecord['comment'] = $studentSubjectComment->comment;
-                    $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;
+                    $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;                   
                 }
                 else{
                     $studentMarkRecord['comment'] = null;
-                    $studentMarkRecord['conduct'] = null;
+                    $studentMarkRecord['coduct'] = null;                    
                 }
                
                 $studentMarkRecordExists = ModelsStudentTermMark::where([
@@ -261,7 +261,7 @@ class StudentTermMark extends Controller
                 'subject_id' => $request->subject_id,
                 'academic_term_id' => $request->academic_term_id,                
                 'comment' => $request->comment,
-                'conduct' => $request->conduct
+                'conduct' => $request->conduct,                
             ]
         );
 

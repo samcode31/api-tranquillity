@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicTerm;
 use App\Models\FormClass;
 use App\Models\TeacherLesson as ModelsTeacherLesson;
 use Illuminate\Http\Request;
@@ -16,9 +17,15 @@ class TeacherLesson extends Controller
         $lessons = ModelsTeacherLesson::whereEmployeeId($id)->get();
         $records = [];
         foreach($lessons as $lesson){
+            $lesson_record = [];
+            $lesson_record['employee_id'] = $lesson->employee_id;
+            $lesson_record['subject_id'] = $lesson->subject_id;
+            $lesson_record['form_class_id'] = $lesson->form_class_id;
+            $lesson_record['subject_title'] = $lesson->subject->title;
+            $lesson_record['form_level'] = $lesson->formClass->form_level;
             $lesson->subject;
             $lesson->formClass;
-            array_push($records, $lesson);
+            array_push($records, $lesson_record);
         }
 
         return $records;
@@ -59,77 +66,56 @@ class TeacherLesson extends Controller
     }
 
     public function store(Request $request){
-        $data = [];
-        $updates = 0;
-        $inserts = 0;
-        $form_class_id = $request->form_class_id;
-        if($form_class_id == 'Form 4'){
-            $form_classes = FormClass::whereFormLevel(4)->get();
-            //return $form_classes;
-        }
-        elseif($form_class_id == 'Form 5'){
-            $form_classes = FormClass::whereFormLevel(5)->get();
-            //return $form_classes;
-        }
-        elseif($form_class_id == 'Lower 6'){
-            $form_classes = FormClass::where('id', 'like', '6L%')
-            ->get();
-            //return $form_classes;
-        }
-        elseif($form_class_id == 'Upper 6'){
-            $form_classes = FormClass::where('id', 'like', '6U%')
-            ->get();
-            //return $form_classes;
-        }
-        else{
-            $form_classes = FormClass::whereId($form_class_id)->get();
-            //return $form_classes;            
-        }       
+        $data = [];                     
+        $academic_term = AcademicTerm::whereIsCurrent(1)->first();
+        $academic_year_id = $academic_term->academic_year_id;
+        //return $academic_year_id;       
         
-        //return $form_classes;
-        foreach($form_classes as $form_class){
-            $lesson = ModelsTeacherLesson::where([
+        $lesson = ModelsTeacherLesson::where([
+            ['employee_id', $request->employee_id],
+            ['academic_year_id', $academic_year_id],
+            ['subject_id', $request->subject_id],
+            ['form_class_id', $request->form_class_id]
+        ])->firstOr( function () { 
+            return false;
+        });
+        
+        if(!$lesson){
+            //insert
+            $teacher_lesson = ModelsTeacherLesson::create([
+                'employee_id' => $request->employee_id,
+                'academic_year_id' => $academic_year_id,
+                'subject_id' => $request->new_subject_id,
+                'form_class_id' => $request->new_form_class_id
+            ]);
+            $teacher_lesson->save();
+            $data['inserted'] = $teacher_lesson; 
+        }
+        else{ 
+            //update
+            $teacherLesson = ModelsTeacherLesson::where([
                 ['employee_id', $request->employee_id],
-                ['academic_year_id', $request->academic_year_id],
+                ['academic_year_id', $academic_year_id],
                 ['subject_id', $request->subject_id],
-                ['form_class_id', $form_class->id]
-            ])->exists();
-            if($lesson){
-                //update
-                $teacherLesson = ModelsTeacherLesson::where([
-                    ['employee_id', $request->employee_id],
-                    ['academic_year_id', $request->academic_year_id],
-                    ['subject_id', $request->subject_id],
-                    ['form_class_id', $form_class->id]
-                ])->first();
-                $teacherLesson->subject_id = $request->new_subject_id;
-                $teacherLesson->form_class_id = $request->new_class_id;
-                $teacherLesson->save();                
-                if($teacherLesson->isDirty()) $updates++;
-            }
-            else{
-                //insert
-                $lesson = ModelsTeacherLesson::create([
-                    'employee_id' => $request->employee_id,
-                    'academic_year_id' => $request->academic_year_id,
-                    'subject_id' => $request->subject_id,
-                    'form_class_id' => $form_class->id
-                ]);
-                $lesson->save();
-                if($lesson->exists) $inserts++;    
-            }
-        }
-        
-        $data['inserted'] = $inserts;
-        $data['updated'] = $updates;
+                ['form_class_id', $request->form_class_id]
+            ])->first();
+            //return $teacherLesson;
+            $teacherLesson->subject_id = $request->new_subject_id;
+            $teacherLesson->form_class_id = $request->new_form_class_id;
+            $teacherLesson->save();                
+            $data['updated'] = $teacherLesson;
+        }       
+       
 
         return $data;
     }
 
-    public function delete(Request $request){        
+    public function delete(Request $request){ 
+        $academic_term = AcademicTerm::whereIsCurrent(1)->first();
+        $academic_year_id = $academic_term->academic_year_id;       
         $lesson = ModelsTeacherLesson::where([
             ['employee_id', $request->employee_id],
-            ['academic_year_id', $request->academic_year_id],
+            ['academic_year_id', $academic_year_id],
             ['subject_id', $request->subject_id],
             ['form_class_id', $request->form_class_id],
         ])->first();

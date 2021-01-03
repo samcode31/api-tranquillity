@@ -24,43 +24,29 @@ class Employee extends Controller
         for($i = 2; $i <= $rows; $i++){            
             $lastName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(1,$i)->getValue();
             $firstName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue();
-            //$email = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue();
+            $email = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue();            
             $lastName = ucwords(strtolower($lastName));
             $firstName = ucwords(strtolower($firstName));
-            //$dateOfBirth = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue();
-            //$dayOfBirth = date_format(date_create($dateOfBirth), 'j');
-             
+                         
             $employee = ModelsEmployee::create([
                 'last_name' => $lastName,
                 'first_name' => $firstName
             ]);
             if($employee->exists()){
                 
-                $userName = str_replace('-','',$firstName[0].$lastName);
-                $userName = str_replace(' ', '', $userName);
-                $userName = str_replace('.', '', $userName);
-                $appendDigit = 0;
+                $userName = $email;
+                
                 $employee_id = $employee->id;
-                //return $employee_id;
-                if(UserEmployee::whereName($userName)->exists()){
-                    $appendDigit++;
-                    $userName = $userName.$appendDigit;
-                }
-                while(UserEmployee::whereName($userName)->exists())
-                {                
-                    $appendDigit++;
-                    $userName = $userName.$appendDigit;
-                }       
-                //$dateOfBirth = date_format(date_create($dateOfBirth), 'Ymd');
+               
                 $user = UserEmployee::create([
                     'name' => $userName,
                     'employee_id' => $employee_id,
-                    'password' => Hash::make($userName),
+                    'password' => Hash::make('Malick300%'),
                     
                 ]);
                 if($user->wasRecentlyCreated){
                     $records++;
-                    for($j = 1; $j < 3; $j++){
+                    for($j = 1; $j < 4; $j++){
                         UserPermissionsAssignment::create([
                             'user_id' => $user->id,
                             'permission_id' => $j
@@ -70,7 +56,7 @@ class Employee extends Controller
             }
             
         }
-        //return $spreadsheet->getActiveSheet()->getHighestDataRow();
+       
         return $records;
     }
 
