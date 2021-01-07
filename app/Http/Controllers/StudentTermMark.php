@@ -29,167 +29,236 @@ class StudentTermMark extends Controller
             ['form_class_id', $class],
             ['academic_year_id', $yearId]
         ])->get();                     
-        //return $studentsRegistered;     
-        if($formLevel < 6){
-            //lower school
-            $total = $studentsRegistered->count();            
-            foreach($studentsRegistered as $student)
-            {
-                $studentMarkRecord = [];
-                $registered++;                
-                $studentId = $student->student_id;
-                
+        //return $studentsRegistered;
+        $total = $studentsRegistered->count();            
+        foreach($studentsRegistered as $student)
+        {
+            $studentMarkRecord = [];
+            $registered++;                
+            $studentId = $student->student_id;
+            
+            $studentSubjectComment = StudentSubjectComment::where([
+                ['student_id', $studentId],
+                ['academic_term_id', $termId],
+                ['subject_id', $subjectId]
+            ])->exists();
+
+            if($studentSubjectComment){
                 $studentSubjectComment = StudentSubjectComment::where([
                     ['student_id', $studentId],
                     ['academic_term_id', $termId],
                     ['subject_id', $subjectId]
-                ])->exists();
-
-                if($studentSubjectComment){
-                    $studentSubjectComment = StudentSubjectComment::where([
-                        ['student_id', $studentId],
-                        ['academic_term_id', $termId],
-                        ['subject_id', $subjectId]
-                    ])->first();
-                    $studentMarkRecord['comment'] = $studentSubjectComment->comment;
-                    $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;                   
-                }
-                else{
-                    $studentMarkRecord['comment'] = null;
-                    $studentMarkRecord['coduct'] = null;                    
-                }
-               
-                $studentMarkRecordExists = ModelsStudentTermMark::where([
+                ])->first();
+                $studentMarkRecord['comment'] = $studentSubjectComment->comment;
+                $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;                   
+            }
+            else{
+                $studentMarkRecord['comment'] = null;
+                $studentMarkRecord['coduct'] = null;                    
+            }
+            
+            $studentMarkRecordExists = ModelsStudentTermMark::where([
+                ['student_id', $studentId],
+                ['academic_term_id', $termId],
+                ['subject_id', $subjectId],
+            ])->exists();
+            
+            if($studentMarkRecordExists){
+                $entered++;
+                $studentExamMarkRecord = ModelsStudentTermMark::where([
                     ['student_id', $studentId],
                     ['academic_term_id', $termId],
                     ['subject_id', $subjectId],
-                ])->exists();
-                
-                if($studentMarkRecordExists){
-                    $entered++;
-                    $studentExamMarkRecord = ModelsStudentTermMark::where([
-                        ['student_id', $studentId],
-                        ['academic_term_id', $termId],
-                        ['subject_id', $subjectId],
-                        ['test_id', 1]
-                    ])->first();                                       
-                    $studentCourseMarkRecord = ModelsStudentTermMark::where([
-                        ['student_id', $studentId],
-                        ['academic_term_id', $termId],
-                        ['subject_id', $subjectId],
-                        ['test_id', 2]
-                    ])->first();                    
-                    $studentMarkRecord['course_mark'] = $studentCourseMarkRecord->mark;
-                    $studentMarkRecord['course_attendance'] = $studentCourseMarkRecord->assesment_attendance_id;
-                    $studentMarkRecord['exam_mark'] = $studentExamMarkRecord->mark;
-                    $studentMarkRecord['exam_attendance'] = $studentExamMarkRecord->assesment_attendance_id;
-                    $studentMarkRecord['employee_id'] = $studentCourseMarkRecord->employee_id;                                       
-                }
-                else{                   
-                    $studentMarkRecord['course_mark'] = null;
-                    $studentMarkRecord['course_attendance'] = 1;
-                    $studentMarkRecord['exam_mark'] = null;
-                    $studentMarkRecord['exam_attendance'] = 1;
-                    $studentMarkRecord['employee_id'] = null;                    
-                }
-                $studentMarkRecord['student_id'] = $studentId;
-                $studentMarkRecord['academic_term_id'] = $termId;
-                $studentMarkRecord['subject_id'] = $subjectId;
-                $studentMarkRecord['first_name'] = $student->student->first_name;
-                $studentMarkRecord['last_name'] = $student->student->last_name;
-                
-                $studentRecord['picture'] = Student::whereId($studentId)->first()->picture;                
-                array_push($data, $studentMarkRecord);
-            }            
-        }
-        else{
-            //form 6
-            // foreach($studentsRegistered as $studentRegistered)
-            // {
-            //     $studentId = $studentRegistered->id;
-                
-            //     if(StudentSubjectAssignment::where([
-            //         ['student_id', $studentId],
-            //         ['subject_id', $subjectId]
-            //     ])->exists())
-            //     {
-            //         $total++;
-            //     }
-            // }
-            foreach($studentsRegistered as $student)
-            {
-                $studentId = $student->student_id;
-                
-                if(StudentSubjectAssignment::where([
+                    ['test_id', 1]
+                ])->first();                                       
+                $studentCourseMarkRecord = ModelsStudentTermMark::where([
                     ['student_id', $studentId],
+                    ['academic_term_id', $termId],
                     ['subject_id', $subjectId],
-                    ['academic_year_id', $yearId]
-                ])->exists())
-                {
-                    $registered++;
-                    $total++;
-
-                    $studentSubjectComment = StudentSubjectComment::where([
-                        ['student_id', $studentId],
-                        ['academic_term_id', $termId],
-                        ['subject_id', $subjectId]
-                    ])->exists();
-    
-                    if($studentSubjectComment){
-                        $studentSubjectComment = StudentSubjectComment::where([
-                            ['student_id', $studentId],
-                            ['academic_term_id', $termId],
-                            ['subject_id', $subjectId]
-                        ])->first();
-                        $studentMarkRecord['comment'] = $studentSubjectComment->comment;
-                        $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;
-                    }
-                    else{
-                        $studentMarkRecord['comment'] = null;
-                        $studentMarkRecord['conduct'] = null;
-                    }
-                    
-                    $studentMarkRecordExists = ModelsStudentTermMark::where([
-                        ['student_id', $studentId],
-                        ['academic_term_id', $termId],
-                        ['subject_id', $subjectId],
-                    ])->exists();
-                    if($studentMarkRecordExists){
-                        $studentExamMarkRecord = ModelsStudentTermMark::where([
-                            ['student_id', $studentId],
-                            ['academic_term_id', $termId],
-                            ['subject_id', $subjectId],
-                            ['test_id', 1]
-                        ])->first();                                       
-                        $studentCourseMarkRecord = ModelsStudentTermMark::where([
-                            ['student_id', $studentId],
-                            ['academic_term_id', $termId],
-                            ['subject_id', $subjectId],
-                            ['test_id', 2]
-                        ])->first();                    
-                        $studentMarkRecord['course_mark'] = $studentCourseMarkRecord->mark;
-                        $studentMarkRecord['course_attendance'] = $studentCourseMarkRecord->assesment_attendance_id;
-                        $studentMarkRecord['exam_mark'] = $studentExamMarkRecord->mark;
-                        $studentMarkRecord['exam_attendance'] = $studentExamMarkRecord->assesment_attendance_id;
-                        $studentMarkRecord['employee_id'] = $studentCourseMarkRecord->employee_id;                      
-                    }
-                    else{
-                        $studentMarkRecord['course_mark'] = null;
-                        $studentMarkRecord['course_attendance'] = 1;
-                        $studentMarkRecord['exam_mark'] = null;
-                        $studentMarkRecord['exam_attendance'] = 1;
-                        $studentMarkRecord['employee_id'] = null;                    
-                    }
-                    $studentMarkRecord['student_id'] = $studentId;
-                    $studentMarkRecord['academic_term_id'] = $termId;
-                    $studentMarkRecord['subject_id'] = $subjectId;
-                    $studentMarkRecord['first_name'] = $student->student->first_name;
-                    $studentMarkRecord['last_name'] = $student->student->last_name;
-                    $studentRecord['picture'] = Student::whereId($studentId)->first()->picture;                
-                    array_push($data, $studentMarkRecord);
-                }
+                    ['test_id', 2]
+                ])->first();                    
+                $studentMarkRecord['course_mark'] = $studentCourseMarkRecord->mark;
+                $studentMarkRecord['course_attendance'] = $studentCourseMarkRecord->assesment_attendance_id;
+                $studentMarkRecord['exam_mark'] = $studentExamMarkRecord->mark;
+                $studentMarkRecord['exam_attendance'] = $studentExamMarkRecord->assesment_attendance_id;
+                $studentMarkRecord['employee_id'] = $studentCourseMarkRecord->employee_id;                                       
             }
-        }
+            else{                   
+                $studentMarkRecord['course_mark'] = null;
+                $studentMarkRecord['course_attendance'] = 1;
+                $studentMarkRecord['exam_mark'] = null;
+                $studentMarkRecord['exam_attendance'] = 1;
+                $studentMarkRecord['employee_id'] = null;                    
+            }
+            $studentMarkRecord['student_id'] = $studentId;
+            $studentMarkRecord['academic_term_id'] = $termId;
+            $studentMarkRecord['subject_id'] = $subjectId;
+            $studentMarkRecord['first_name'] = $student->student->first_name;
+            $studentMarkRecord['last_name'] = $student->student->last_name;
+            
+            $studentRecord['picture'] = Student::whereId($studentId)->first()->picture;                
+            array_push($data, $studentMarkRecord);
+        }                 
+        // if($formLevel < 6){
+        //     //lower school
+        //     $total = $studentsRegistered->count();            
+        //     foreach($studentsRegistered as $student)
+        //     {
+        //         $studentMarkRecord = [];
+        //         $registered++;                
+        //         $studentId = $student->student_id;
+                
+        //         $studentSubjectComment = StudentSubjectComment::where([
+        //             ['student_id', $studentId],
+        //             ['academic_term_id', $termId],
+        //             ['subject_id', $subjectId]
+        //         ])->exists();
+
+        //         if($studentSubjectComment){
+        //             $studentSubjectComment = StudentSubjectComment::where([
+        //                 ['student_id', $studentId],
+        //                 ['academic_term_id', $termId],
+        //                 ['subject_id', $subjectId]
+        //             ])->first();
+        //             $studentMarkRecord['comment'] = $studentSubjectComment->comment;
+        //             $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;                   
+        //         }
+        //         else{
+        //             $studentMarkRecord['comment'] = null;
+        //             $studentMarkRecord['coduct'] = null;                    
+        //         }
+               
+        //         $studentMarkRecordExists = ModelsStudentTermMark::where([
+        //             ['student_id', $studentId],
+        //             ['academic_term_id', $termId],
+        //             ['subject_id', $subjectId],
+        //         ])->exists();
+                
+        //         if($studentMarkRecordExists){
+        //             $entered++;
+        //             $studentExamMarkRecord = ModelsStudentTermMark::where([
+        //                 ['student_id', $studentId],
+        //                 ['academic_term_id', $termId],
+        //                 ['subject_id', $subjectId],
+        //                 ['test_id', 1]
+        //             ])->first();                                       
+        //             $studentCourseMarkRecord = ModelsStudentTermMark::where([
+        //                 ['student_id', $studentId],
+        //                 ['academic_term_id', $termId],
+        //                 ['subject_id', $subjectId],
+        //                 ['test_id', 2]
+        //             ])->first();                    
+        //             $studentMarkRecord['course_mark'] = $studentCourseMarkRecord->mark;
+        //             $studentMarkRecord['course_attendance'] = $studentCourseMarkRecord->assesment_attendance_id;
+        //             $studentMarkRecord['exam_mark'] = $studentExamMarkRecord->mark;
+        //             $studentMarkRecord['exam_attendance'] = $studentExamMarkRecord->assesment_attendance_id;
+        //             $studentMarkRecord['employee_id'] = $studentCourseMarkRecord->employee_id;                                       
+        //         }
+        //         else{                   
+        //             $studentMarkRecord['course_mark'] = null;
+        //             $studentMarkRecord['course_attendance'] = 1;
+        //             $studentMarkRecord['exam_mark'] = null;
+        //             $studentMarkRecord['exam_attendance'] = 1;
+        //             $studentMarkRecord['employee_id'] = null;                    
+        //         }
+        //         $studentMarkRecord['student_id'] = $studentId;
+        //         $studentMarkRecord['academic_term_id'] = $termId;
+        //         $studentMarkRecord['subject_id'] = $subjectId;
+        //         $studentMarkRecord['first_name'] = $student->student->first_name;
+        //         $studentMarkRecord['last_name'] = $student->student->last_name;
+                
+        //         $studentRecord['picture'] = Student::whereId($studentId)->first()->picture;                
+        //         array_push($data, $studentMarkRecord);
+        //     }            
+        // }
+        // else{
+        //     //form 6
+        //     // foreach($studentsRegistered as $studentRegistered)
+        //     // {
+        //     //     $studentId = $studentRegistered->id;
+                
+        //     //     if(StudentSubjectAssignment::where([
+        //     //         ['student_id', $studentId],
+        //     //         ['subject_id', $subjectId]
+        //     //     ])->exists())
+        //     //     {
+        //     //         $total++;
+        //     //     }
+        //     // }
+        //     foreach($studentsRegistered as $student)
+        //     {
+        //         $studentId = $student->student_id;
+                
+        //         if(StudentSubjectAssignment::where([
+        //             ['student_id', $studentId],
+        //             ['subject_id', $subjectId],
+        //             ['academic_year_id', $yearId]
+        //         ])->exists())
+        //         {
+        //             $registered++;
+        //             $total++;
+
+        //             $studentSubjectComment = StudentSubjectComment::where([
+        //                 ['student_id', $studentId],
+        //                 ['academic_term_id', $termId],
+        //                 ['subject_id', $subjectId]
+        //             ])->exists();
+    
+        //             if($studentSubjectComment){
+        //                 $studentSubjectComment = StudentSubjectComment::where([
+        //                     ['student_id', $studentId],
+        //                     ['academic_term_id', $termId],
+        //                     ['subject_id', $subjectId]
+        //                 ])->first();
+        //                 $studentMarkRecord['comment'] = $studentSubjectComment->comment;
+        //                 $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;
+        //             }
+        //             else{
+        //                 $studentMarkRecord['comment'] = null;
+        //                 $studentMarkRecord['conduct'] = null;
+        //             }
+                    
+        //             $studentMarkRecordExists = ModelsStudentTermMark::where([
+        //                 ['student_id', $studentId],
+        //                 ['academic_term_id', $termId],
+        //                 ['subject_id', $subjectId],
+        //             ])->exists();
+        //             if($studentMarkRecordExists){
+        //                 $studentExamMarkRecord = ModelsStudentTermMark::where([
+        //                     ['student_id', $studentId],
+        //                     ['academic_term_id', $termId],
+        //                     ['subject_id', $subjectId],
+        //                     ['test_id', 1]
+        //                 ])->first();                                       
+        //                 $studentCourseMarkRecord = ModelsStudentTermMark::where([
+        //                     ['student_id', $studentId],
+        //                     ['academic_term_id', $termId],
+        //                     ['subject_id', $subjectId],
+        //                     ['test_id', 2]
+        //                 ])->first();                    
+        //                 $studentMarkRecord['course_mark'] = $studentCourseMarkRecord->mark;
+        //                 $studentMarkRecord['course_attendance'] = $studentCourseMarkRecord->assesment_attendance_id;
+        //                 $studentMarkRecord['exam_mark'] = $studentExamMarkRecord->mark;
+        //                 $studentMarkRecord['exam_attendance'] = $studentExamMarkRecord->assesment_attendance_id;
+        //                 $studentMarkRecord['employee_id'] = $studentCourseMarkRecord->employee_id;                      
+        //             }
+        //             else{
+        //                 $studentMarkRecord['course_mark'] = null;
+        //                 $studentMarkRecord['course_attendance'] = 1;
+        //                 $studentMarkRecord['exam_mark'] = null;
+        //                 $studentMarkRecord['exam_attendance'] = 1;
+        //                 $studentMarkRecord['employee_id'] = null;                    
+        //             }
+        //             $studentMarkRecord['student_id'] = $studentId;
+        //             $studentMarkRecord['academic_term_id'] = $termId;
+        //             $studentMarkRecord['subject_id'] = $subjectId;
+        //             $studentMarkRecord['first_name'] = $student->student->first_name;
+        //             $studentMarkRecord['last_name'] = $student->student->last_name;
+        //             $studentRecord['picture'] = Student::whereId($studentId)->first()->picture;                
+        //             array_push($data, $studentMarkRecord);
+        //         }
+        //     }
+        // }
         //usort($data, array($this, "cmp"));
         $lastName = array_column($data, 'last_name');
         array_multisort($lastName, SORT_ASC, $data);
