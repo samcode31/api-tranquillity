@@ -10,6 +10,7 @@ class Pdf extends Fpdf
 {
     public $widths;
     public $aligns;
+    public $borders;
     
     public function SetWidths($w)
     {
@@ -23,10 +24,14 @@ class Pdf extends Fpdf
         $this->aligns=$a;
     }
 
+    public function SetBorders($b){
+        $this->borders=$b;
+    }
+
     public function Row($data, $fill, $border=1)
     {
         //Calculate the height of the row
-        $nb=0; $nbMax=0; $noComment = false; $teacherCol = 7; $teacherInitialOffset = 75; $passmark = 50;
+        $nb=0; $nbMax=0; $noComment = false; $teacherCol = 6; $teacherInitialOffset = 90; $passmark = 50;
         
         for($i=0;$i<count($data);$i++)
             if($i != $teacherCol) $nbMax=max($nbMax,$this->NbLines($this->widths[$i],$data[$i]));
@@ -40,7 +45,10 @@ class Pdf extends Fpdf
             if($i != $teacherCol) $nb=$this->NbLines($this->widths[$i],$data[$i]);
             if($nb == 0) $nb = 1;
             if($i != $teacherCol) $w=$this->widths[$i];
-            if($i != $teacherCol)$a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
+            if($i != $teacherCol){
+                $a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
+                $b=isset($this->borders[$i]) ? $this->borders[$i] : '1';
+            }
             //Save the current position
             $x=$this->GetX();
             $y=$this->GetY();
@@ -64,7 +72,7 @@ class Pdf extends Fpdf
                 //     //$this->SetFillColor(220, 220, 220); 
                 //     $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],1,$a,$fill);  
                 // }               
-                $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],$border,$a,$fill);            
+                $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],$b,$a,$fill);            
             }  
             
             $this->SetTextColor(0, 0, 0);           

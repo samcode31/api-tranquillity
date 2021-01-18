@@ -9,6 +9,7 @@ use App\Models\FormDeanAssignment;
 use App\Models\FormTeacherAssignment;
 use App\Models\Student;
 use App\Models\StudentClassRegistration;
+use App\Models\StudentDeanComment;
 use App\Models\StudentSubjectComment;
 use App\Models\StudentTermDetail;
 use App\Models\StudentTermMark as ModelsStudentTermMark;
@@ -92,8 +93,13 @@ class ReportCard extends Controller
             ->get();
         }
         
+        $class_students = StudentClassRegistration::where([
+            ['form_class_id', $formClass],
+            ['academic_year_id', $academic_year_id]
+        ])
+        ->get();
         
-        $class_total = sizeof($students);
+        $class_total = sizeof($class_students);
 
         if($course_mark_only)
         $class_summaries = $this->classTermSummary($students, $termId, 2, $pass_mark);
@@ -136,14 +142,11 @@ class ReportCard extends Controller
                         ['subject_id', $subjectId]
                     ])->first();
                     $studentMarkRecord['comment'] = $studentSubjectComment->comment;
-                    $studentMarkRecord['attitude'] = $studentSubjectComment->attitude;
-                    $studentMarkRecord['interest'] = $studentSubjectComment->interest;
-                    
+                    $studentMarkRecord['conduct'] = $studentSubjectComment->conduct;
                 }
                 else{
                     $studentMarkRecord['comment'] = null;
-                    $studentMarkRecord['attitude'] = null;
-                    $studentMarkRecord['interest'] = null;
+                    $studentMarkRecord['conduct'] = null;                   
                 }
 
                 $studentMarkRecordExists = ModelsStudentTermMark::where([
@@ -195,7 +198,17 @@ class ReportCard extends Controller
                 $studentMarkRecord['subject'] = Subject::whereId($subjectId)->first()->title;                
                            
                 array_push($studentTermMarks, $studentMarkRecord);            
-            } 
+            }
+            
+            $student_dean_comment = StudentDeanComment::where([
+                ['student_id', $studentId],
+                ['academic_term_id', $termId]
+            ])->first();
+
+            if($student_dean_comment){
+                $studentTermDetails['dean_comment'] = $student_dean_comment->comment;
+            }
+            else $studentTermDetails['dean_comment'] = null;
             
             $studentTermDetailsRecord = StudentTermDetail::where([
                 ['student_id', $studentId],
@@ -281,8 +294,10 @@ class ReportCard extends Controller
             $this->pdf->SetFont('Times', 'B', '20');
             $this->pdf->Image($waterMark, 50, 70, 120);            
             $this->pdf->SetTextColor($primaryRed, $primaryGreen, $primaryBlue);
+            $this->pdf->SetX(37);
             $this->pdf->MultiCell(0, 8, $school.' SCHOOL', 0, 'C' );
             $this->pdf->SetFont('Times', 'I', 10);
+            $this->pdf->SetX(37);
             $this->pdf->MultiCell(0, 6, $address, 0, 'C' );                     
             $this->pdf->SetFont('Times', 'B', 12);
             $this->pdf->Ln();
@@ -331,33 +346,36 @@ class ReportCard extends Controller
             $this->pdf->SetFont('Times', '', 11);            
             $this->pdf->Cell(30.5, 6, "\tSessions Absent: ", 'LB', 0, 'L');
             $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(18.5, 6, $record['term_details']['sessions_absent'], 'B', 0, 'C');
+            $this->pdf->Cell(18.5, 6, $record['term_details']['sessions_absent'], 'B', 0, 'L');
             $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(25.5, 6, "\tSessions Late: ", 'B', 0, 'L');
             $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(23.5, 6, $record['term_details']['sessions_late'], 'B', 0, 'C');
+            $this->pdf->Cell(23.5, 6, $record['term_details']['sessions_late'], 'B', 0, 'L');
             $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(27.5, 6, "\tTotal Sessions: ", 'B', 0, 'L');
             $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(21.5, 6, $record['term_details']['total_sessions'], 'B', 0, 'C');
+            $this->pdf->Cell(21.5, 6, $record['term_details']['total_sessions'], 'B', 0, 'L');
             $this->pdf->Cell(48.9, 6, "",'RB', 0, 'L');
             $this->pdf->Ln(12); 
 
             $this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
-            $this->pdf->SetDrawColor($secondaryRed, $secondaryGreen, $secondaryBlue);
+            //$this->pdf->SetDrawColor($primaryRed, $primaryGreen, $primaryBlue);
             //$this->pdf->SetDrawColor(219, 219, 219);
             
-            $this->pdf->SetWidths(array(45, 30, 30, 15, 75.9));
+            $this->pdf->SetWidths(array(45, 30, 15, 15, 90.9));
             $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C'));
+            $this->pdf->SetBorders(array('TL',  1, 'TL', 'TLR', 'TR' ));
             $this->pdf->SetFont('Times', 'B', 10);
-            $this->pdf->Row(array("", "GRADE", "MARKS", "Highest", ""), true);  
+            $this->pdf->Row(array("", "MARKS", "Highest", "",  ""), false);  
 
-            $this->pdf->SetWidths(array(45, 15, 15, 15, 15, 15, 75.9));        
-            $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'C', 'C'));
+            $this->pdf->SetWidths(array(45, 15, 15, 15, 15, 90.9));        
+            $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'C'));
+            $this->pdf->SetBorders(array('L', 'LR', 'LR', 'LR', 'LR', 'R' ));
             $this->pdf->SetFont('Times', 'B', 10);
-            $this->pdf->Row(array("Subject", "ATT", "INT", "Term\n %", "Exam %", "Exam Mark", "Subject Teacher Comment"), true);
+            $this->pdf->Row(array("Subject", "Term\n %", "Exam %", "Exam Mark", "Conduct", "Subject Teacher Comment"), false);
             
-            $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'C', 'L'));
+            $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'L', 'L'));
+            $this->pdf->SetBorders(array(1, 1, 1, 1, 1, 1, 1 ));
             $this->pdf->SetFont('Times', '', 11);
             $this->pdf->SetFillColor(255, 255, 255);
             
@@ -366,12 +384,11 @@ class ReportCard extends Controller
             foreach($subjectRecords as $subjectRecord){
                 if(sizeof($subjectRecord) != 0){                   
                     $this->pdf->Row(array(
-                        $subjectRecord['subject'],
-                        $subjectRecord['attitude'],
-                        $subjectRecord['interest'],
+                        $subjectRecord['subject'], 
                         $subjectRecord['course_mark'],
                         $subjectRecord['exam_mark'],
-                        '',                        
+                        '',
+                        $subjectRecord['conduct'],                        
                         $subjectRecord['comment']."\n\t",
                         $subjectRecord['teacher']
                     ), false);
@@ -391,14 +408,14 @@ class ReportCard extends Controller
             }            
 
             $this->pdf->Ln(4);
-            $this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);   
+            //$this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);   
             $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(30,8,"A : Excellent", 0, 0, 'C', true);
-            $this->pdf->Cell(30,8,"B : Very Good", 0, 0, 'C', true);
-            $this->pdf->Cell(30,8,"C : Good", 0, 0, 'C', true);
-            $this->pdf->Cell(30,8,"D : Poor", 0, 0, 'C', true);
-            $this->pdf->Cell(30,8,"E : Unsatisfactory", 0, 0, 'C', true);            
-            $this->pdf->Cell(45.9,8,"NW : No Work Submitted", 0, 0, 'C', true);
+            $this->pdf->Cell(30,8,"A : Excellent", 'TLB', 0, 'C');
+            $this->pdf->Cell(30,8,"B : Very Good", 'TB', 0, 'C');
+            $this->pdf->Cell(30,8,"C : Good", 'TB', 0, 'C');
+            $this->pdf->Cell(30,8,"D : Poor", 'TB', 0, 'C');
+            $this->pdf->Cell(30,8,"E : Unsatisfactory", 'TB', 0, 'C');            
+            $this->pdf->Cell(45.9,8,"NW : No Work Submitted", 'TBR', 0, 'C');
 
             $this->pdf->Ln(10);        
             $this->pdf->SetFont('Times','B','10');
@@ -418,12 +435,12 @@ class ReportCard extends Controller
             // $this->pdf->Cell(54,7,'', 0, 0,"L");            
             $this->pdf->Ln(10);
 
-            // $this->pdf->SetFont('Times','B','10');
-            // $this->pdf->Cell(0,5,"Dean's Comments:", 0, "J");
-            // $this->pdf->Ln();
+            $this->pdf->SetFont('Times','B','10');
+            $this->pdf->Cell(0,5,"Dean's Comments:", 0, "J");
+            $this->pdf->Ln();
 
-            // $this->pdf->SetFont('Times','I','10');
-            // $this->pdf->MultiCell(0, 5, '', 1, "J");        
+            $this->pdf->SetFont('Times','I','10');
+            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");        
             $this->pdf->SetFont('Times','B','10');
             $this->pdf->Cell(10,7,"Dean:",0,0,"L");
             $this->pdf->SetFont('Times','I','10');
