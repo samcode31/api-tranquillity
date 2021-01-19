@@ -297,21 +297,21 @@ class ReportCard extends Controller
         
         foreach($data as $record){
             $this->pdf->AddPage('P', 'Letter');
-            $this->pdf->Image($logo, 10, 6, 27);
+            $this->pdf->Image($logo, 8, 6, 27);
             $this->pdf->SetFont('Times', 'B', '20');
             $this->pdf->Image($waterMark, 20, 70, 175);            
             $this->pdf->SetTextColor($primaryRed, $primaryGreen, $primaryBlue);
-            $this->pdf->SetX(27);
+            $this->pdf->SetX(30);
             $this->pdf->MultiCell(0, 8, $school.' SCHOOL', 0, 'C' );
             $this->pdf->SetFont('Times', 'I', 10);
-            $this->pdf->SetX(27);
+            $this->pdf->SetX(30);
             $this->pdf->MultiCell(0, 6, $address, 0, 'C' );                     
             $this->pdf->SetFont('Times', 'B', 12);
-            $this->pdf->Ln();
+            $this->pdf->Ln(3);
 
             $this->pdf->SetFont('Times', 'UBI', 16);
             $this->pdf->MultiCell(0,6, $record['student'].' ', 0, 'C');
-            $this->pdf->Ln();
+            $this->pdf->Ln(3);
             
             $this->pdf->SetDrawColor(219, 219, 219);
             $this->pdf->SetTextColor(0, 0, 0);
@@ -355,7 +355,7 @@ class ReportCard extends Controller
             $this->pdf->Cell(50, 6, "\tTotal Sessions: ", 'B', 0, 'R');
             $this->pdf->SetFont('Times', 'B', 11);
             $this->pdf->Cell(15.9, 6, $record['term_details']['total_sessions'], 'RB', 0, 'L');           
-            $this->pdf->Ln(12); 
+            $this->pdf->Ln(8); 
 
             $this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
             //$this->pdf->SetDrawColor($primaryRed, $primaryGreen, $primaryBlue);
