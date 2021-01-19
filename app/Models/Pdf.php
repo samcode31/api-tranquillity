@@ -35,7 +35,7 @@ class Pdf extends Fpdf
         
         for($i=0;$i<count($data);$i++)
             if($i != $teacherCol) $nbMax=max($nbMax,$this->NbLines($this->widths[$i],$data[$i]));
-        $h=5*$nbMax;
+        $h=4*$nbMax;
         
         //Issue a page break first if needed
         $this->CheckPageBreak($h);
@@ -56,11 +56,11 @@ class Pdf extends Fpdf
             if(($i == 1 || $i == 2) && is_numeric($data[$i]) && $data[$i] < $passmark) $this->SetTextColor(255, 0, 0);
             //Print the text
             if($i == $teacherCol ){                
-                $this->SetFont('Times','BI','10');
+                $this->SetFont('Times','BI','9');
                 if($data[$teacherCol-1] == "\n\t")
                     $this->Text($this->GetX() - $teacherInitialOffset, $this->GetY() + (bcdiv($h,$nb) + 1),$data[$i]);
-                else $this->Text($this->GetX() - $teacherInitialOffset, $this->GetY() + (bcdiv($h,$nb) * $nbMax) - 2," ".$data[$i]);
-                $this->SetFont('Times','','10');
+                else $this->Text($this->GetX() - $teacherInitialOffset, $this->GetY() + (bcdiv($h,$nb) * $nbMax) - 1," ".$data[$i]);
+                $this->SetFont('Times','','9');
             }else{
                 // if(count($data) == 7 && ( $i == 2 || $i == 3 ))
                 // {

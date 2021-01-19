@@ -303,7 +303,7 @@ class ReportCard extends Controller
             $this->pdf->SetTextColor($primaryRed, $primaryGreen, $primaryBlue);
             $this->pdf->SetX(30);
             $this->pdf->MultiCell(0, 8, $school.' SCHOOL', 0, 'C' );
-            $this->pdf->SetFont('Times', 'I', 10);
+            $this->pdf->SetFont('Times', 'I', 9);
             $this->pdf->SetX(30);
             $this->pdf->MultiCell(0, 6, $address, 0, 'C' );                     
             $this->pdf->SetFont('Times', 'B', 12);
@@ -364,13 +364,13 @@ class ReportCard extends Controller
             $this->pdf->SetWidths(array(45, 30, 15, 15, 90.9));
             $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C'));
             $this->pdf->SetBorders(array('TL',  1, 'TL', 'TLR', 'TR' ));
-            $this->pdf->SetFont('Times', 'B', 10);
+            $this->pdf->SetFont('Times', 'B', 9);
             $this->pdf->Row(array("", "MARKS", "Highest", "",  ""), false);  
 
             $this->pdf->SetWidths(array(45, 15, 15, 15, 15, 90.9));        
             $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'C'));
             $this->pdf->SetBorders(array('L', 'LR', 'LR', 'LR', 'LR', 'R' ));
-            $this->pdf->SetFont('Times', 'B', 10);
+            $this->pdf->SetFont('Times', 'B', 9);
             if($course_mark_only){
                 $this->pdf->Row(array("Subject", "Term\n %", "Exam %", "Course Mark", "Conduct", "Subject Teacher Comment"), false);
             }
@@ -380,7 +380,7 @@ class ReportCard extends Controller
             
             $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'L', 'L'));
             $this->pdf->SetBorders(array(1, 1, 1, 1, 1, 1, 1 ));
-            $this->pdf->SetFont('Times', '', 11);
+            $this->pdf->SetFont('Times', '', 9);
             $this->pdf->SetFillColor(255, 255, 255);
             
             $this->pdf->SetFillColor(51, 51, 255);
@@ -444,7 +444,7 @@ class ReportCard extends Controller
             $this->pdf->Ln();
 
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment']."\n\t", 1, "J");        
+            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");        
             $this->pdf->SetFont('Times','B','10');
             $this->pdf->Cell(10,7,"Dean:",0,0,"L");
             $this->pdf->SetFont('Times','I','10');
