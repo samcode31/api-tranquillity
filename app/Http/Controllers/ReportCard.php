@@ -376,7 +376,7 @@ class ReportCard extends Controller
             $this->pdf->SetBorders(array('L', 'LR', 'LR', 'LR', 'LR', 'R' ));
             $this->pdf->SetFont('Times', 'B', 9);
             if($course_mark_only){
-                $this->pdf->Row(array("Subject", "Term\n %", "Exam %", "Course Mark", "Conduct", "Subject Teacher Comment"), false);
+                $this->pdf->Row(array("Subject", "Term\n %", "Exam\n %", "Course Mark", "Conduct", "Subject Teacher Comment"), false);
             }
             else{
                 $this->pdf->Row(array("Subject", "Term\n %", "Exam %", "Exam Mark", "Conduct", "Subject Teacher Comment"), false);
