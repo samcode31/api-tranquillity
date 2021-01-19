@@ -113,13 +113,17 @@ class ReportCard extends Controller
             
             $studentId = $student->student_id;
             
-            $distinctSubjects = ModelsStudentTermMark::where([
+            $distinctSubjects = ModelsStudentTermMark::join('subjects', 'student_term_marks.subject_id', 'subjects.id')
+            ->where([
                 ['student_id', $studentId], 
                 ['academic_term_id', $termId]   
             ])
-            ->select('subject_id')
-            ->distinct()            
+            ->select('subject_id', 'subjects.title')
+            ->distinct()
+            ->orderBy('subjects.title')            
             ->get();
+
+            //return $distinctSubjects;
 
             if($course_mark_only)
             $student_performance = $this->studentPerformance($studentId, $academic_term->id, 2, $pass_mark);
