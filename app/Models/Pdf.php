@@ -53,7 +53,7 @@ class Pdf extends Fpdf
             $x=$this->GetX();
             $y=$this->GetY();
             //set mark to red
-            if($i == 2 && is_numeric($data[$i]) && $data[$i] < $passmark) $this->SetTextColor(255, 0, 0);
+            if(($i == 1 || $i == 2) && is_numeric($data[$i]) && $data[$i] < $passmark) $this->SetTextColor(255, 0, 0);
             //Print the text
             if($i == $teacherCol ){                
                 $this->SetFont('Times','BI','10');
