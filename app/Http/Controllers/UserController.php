@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+ini_set('max_execution_time', '900');
 use App\Models\Student;
 use App\Models\User;
 use App\Models\UserAdmin;
@@ -14,24 +14,14 @@ use Illuminate\Http\Response;
 class UserController extends Controller
 {
     public function register(){
-        //$students = Student::all();
-        $students = Student::where('id', 'like', '20%')->get();
+        $students = Student::all();
+        //$students = Student::where('id', 'like', '20%')->get();
         //return $students;
         $usersCreated = 0;
         foreach($students as $student){
             $id = $student->id;
-            $name = $student->first_name.' '.$student->last_name;
-            // if($student->class_id == '6Lw')
-            // {
-            //     $password = date_format(date_create($student->date_of_birth), 'Ymd');
-            //     $user = UserStudent::create([
-            //         'name' => $name,
-            //         'student_id' => $id,
-            //         'password' => Hash::make($password)
-            //     ]);
-            // }
-            $password = $student->birth_certificate_pin;
-            //$password = date_format(date_create($student->date_of_birth), 'Ymd');
+            $name = $student->first_name.' '.$student->last_name;            
+            $password = $student->birth_certificate_pin;            
             $user = UserStudent::updateOrCreate(
                 ['student_id' => $id],
                 ['name' => $name, 'student_id' => $id, 'password' => Hash::make($password)]

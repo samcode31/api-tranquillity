@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademicTerm;
+use App\Models\AcademicYear;
 use App\Models\FormClass;
 use App\Models\Student;
 use App\Models\StudentClassRegistration;
 use App\Models\StudentSubjectAssignment;
 use App\Models\StudentSubjectComment;
+use App\Models\StudentTermDetail;
 use App\Models\StudentTermMark as ModelsStudentTermMark;
 use App\Models\Subject;
 use Illuminate\Http\Request;
@@ -429,5 +431,33 @@ class StudentTermMark extends Controller
         ])->get();
 
         return $records;
+    }
+
+    public function showReportTerms($student_id)
+    {
+        $termsAvailable = [];
+                       
+        $termDetails = StudentTermDetail::whereStudentId($student_id)
+        ->select('academic_term_id', 'form_class_id')
+        ->orderBy('academic_term_id')
+        ->get();
+        
+        foreach($termDetails as $term){
+            $termData = [];
+            $academic_term = AcademicTerm::whereId($term->academic_term_id)->first();            
+            $form_level = FormClass::whereId($term->form_class_id)->first()->form_level;
+            $termData['form_level'] = $form_level;
+            $termData['term'] = $academic_term->term;
+            $termData['term_end'] = $academic_term->term_end;
+            $termData['form_class_id'] = $term->form_class_id;
+            $academic_year = AcademicYear::whereId($academic_term->academic_year_id)->first();
+            $academic_year_start = date_format(date_create($academic_year->start), 'Y');
+            $academic_year_end = date_format(date_create($academic_year->end), 'Y');
+            $termData['academic_year'] = $academic_year_start.'-'.$academic_year_end;
+            $termData['academic_term_id'] = $term->academic_term_id;
+            array_push($termsAvailable, $termData);
+        }
+
+        return $termsAvailable;
     }
 }

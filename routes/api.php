@@ -189,6 +189,8 @@ Route::post('/delete-student-subject-assignment', [StudentSubjectAssignment::cla
 
 Route::get('/student-status', [StudentController::class, 'status']);
 
+Route::get('/student-reports/{studentId}', [StudentTermMark::class, 'showReportTerms']);
+
 //-------------------------- Upload Data -------------------------------------
 
 Route::post('/upload-employees', [Employee::class, 'upload']);
