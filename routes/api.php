@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AcademicTerm;
 use App\Http\Controllers\ClassList;
+use App\Http\Controllers\ClassMarkSheet;
 use App\Http\Controllers\CommentTemplate;
 use App\Http\Controllers\Employee;
 use App\Http\Controllers\FileUploadController;
@@ -172,6 +173,10 @@ Route::post('/term-details', [StudentTermDetail::class, 'store']);
 Route::get('/report-card/{termId}/{classId?}/{studentId?}', [ReportCard::class, 'show']);
 
 Route::get('/class-list/{class_id}/{yearId}', [ClassList::class, 'show']);
+
+Route::get('/mark-sheet/{term_id}/{class_id}', [ClassMarkSheet::class, 'show']);
+
+Route::get('/mark-sheet-terms', [ClassMarkSheet::class, 'terms']);
 
 //----------------------------- Students --------------------------------------
 
