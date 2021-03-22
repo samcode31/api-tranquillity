@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademicTerm;
+use App\Models\AcademicYear;
 use App\Models\Employee;
 use App\Models\FormClass;
 use App\Models\FormDeanAssignment;
@@ -587,7 +588,8 @@ class ReportCard extends Controller
         return 0;
     }
 
-    private function highestMark($subject_id, $form_class_id, $academic_term_id, $test_id){               
+    private function highestMark($subject_id, $form_class_id, $academic_term_id, $test_id)
+    {               
         return ModelsStudentTermMark::join('student_class_registrations', 'student_term_marks.student_id', 'student_class_registrations.student_id')
         ->select('student_term_marks.mark')
         ->where([
@@ -599,5 +601,32 @@ class ReportCard extends Controller
         ->max('mark');
     }
 
+    public function terms(){
+        $data = [];
+        
+        $distinct_academic_terms = ModelsStudentTermMark::select('academic_term_id')
+        ->distinct()
+        ->orderBy('academic_term_id')
+        ->get();
+
+        foreach($distinct_academic_terms as $distinct_academic_term){
+            $record = [];
+            $academic_term_id = $distinct_academic_term->academic_term_id;
+            $academic_term = AcademicTerm::where('id', $academic_term_id)
+            ->first();
+            $term = $academic_term->term;
+            $academic_year_id = $academic_term->academic_year_id;            
+            $academic_year = AcademicYear::where('id', $academic_year_id)
+            ->first();
+            $year_start = date_format(date_create($academic_year->start), "Y");
+            $year_end = date_format(date_create($academic_year->end), "Y");
+            $record['academic_term_id'] = $academic_term_id;
+            $record['academic_year'] = $year_start.'-'.$year_end;
+            $record['term'] = $term;
+            array_push($data, $record);
+        }
+
+        return $data;
+    }    
     
 }

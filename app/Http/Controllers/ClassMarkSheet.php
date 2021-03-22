@@ -36,10 +36,14 @@ class ClassMarkSheet extends Controller
         $term_configuration = TermConfiguration::where('academic_term_id', $academic_term_id)->first();
         if($term_configuration){
             $course_mark_only = ($term_configuration->exam_mark === 0) ? true : false;
-        }
+        }        
+        
+        //$class_averages = $course_mark_only ? $this->classAverages($form_class_id, $academic_term_id, 2) : $this-> $this->classAverages($form_class_id, $academic_term_id, 1);
+        if($course_mark_only) $class_averages = $this->classAverages($form_class_id, $academic_term_id, 2);
+        else $class_averages = $this->classAverages($form_class_id, $academic_term_id, 1);
 
-        $class_averages = $course_mark_only ? $this->classAverages($form_class_id, $academic_term_id, 2) : $this-> $this->classAverages($form_class_id, $academic_term_id, 1);
         //return $class_averages;
+
         $distinct_subjects = StudentTermMark::join('student_class_registrations', 'student_term_marks.student_id', 'student_class_registrations.student_id')
         ->join('subjects', 'student_term_marks.subject_id', 'subjects.id')
         ->where([
@@ -324,7 +328,7 @@ class ClassMarkSheet extends Controller
             ['academic_term_id', $academic_term_id]
         ])
         ->select('student_id')
-        ->get();
+        ->get();       
 
         foreach($students_registered as $student){
             $total_marks = 0; $total_subjects = 0; 

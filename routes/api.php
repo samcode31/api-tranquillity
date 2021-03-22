@@ -178,6 +178,8 @@ Route::get('/mark-sheet/{term_id}/{class_id}', [ClassMarkSheet::class, 'show']);
 
 Route::get('/mark-sheet-terms', [ClassMarkSheet::class, 'terms']);
 
+Route::get('/report-card-terms', [ReportCard::class, 'terms']);
+
 //----------------------------- Students --------------------------------------
 
 Route::get('/students', [StudentController::class, 'show']);
