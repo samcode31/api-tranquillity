@@ -439,7 +439,7 @@ class StudentTermMark extends Controller
                        
         $termDetails = StudentTermDetail::whereStudentId($student_id)
         ->select('academic_term_id', 'form_class_id')
-        ->orderBy('academic_term_id')
+        ->orderBy('academic_term_id', 'desc')
         ->get();
         
         foreach($termDetails as $term){

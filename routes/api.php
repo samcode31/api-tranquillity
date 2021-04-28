@@ -100,6 +100,8 @@ Route::middleware('auth:sanctum')->get('/user-auth', function() {
 
 Route::post('/admin-login', [LoginController::class, 'authenticate']);
 
+Route::post('/login-student', [LoginController::class, 'authenticateStudent']);
+
 Route::get('/registration-report/{classId}', [RegistrationReportController::class, 'create']);
 
 //----------------------------- Term Reports -----------------------------------

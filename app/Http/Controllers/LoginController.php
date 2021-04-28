@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Student;
 use App\Models\UserEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +38,19 @@ class LoginController extends Controller
         //return $credentials;       
         if(Auth::guard('employee')->attempt($credentials)){
             return UserEmployee::whereName($request->name)->get();
+        }
+        else{
+            throw ValidationException::withMessages([
+                'message' => [trans('auth.failed')]
+            ]);
+        }
+    }
+
+    public function authenticateStudent(Request $request)
+    {
+        $credentials =  $request->only('student_id', 'password');
+        if(Auth::guard('student')->attempt($credentials)){                    
+            return Student::where('id', $request->student_id)->first();
         }
         else{
             throw ValidationException::withMessages([
