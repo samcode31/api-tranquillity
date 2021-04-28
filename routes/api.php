@@ -214,4 +214,22 @@ Route::post('/upload-student-class-registration', [StudentClassRegistration::cla
 
 Route::post('/upload-teacher-lessons', [TeacherLesson::class, 'upload']);
 
+//--------------------- Settings ---------------------------------
 
+Route::get('/current-term', [AcademicTerm::class, 'show']);
+
+Route::get('/next-term', [AcademicTerm::class, 'showNextTerm']);
+
+Route::post('/current-term', [AcademicTerm::class, 'store']);
+
+Route::post('/term-registration', [StudentTermDetail::class, 'register']);
+
+Route::get('/term-history', [AcademicTerm::class, 'showHistory']);
+
+Route::post('/backdate-term', [AcademicTerm::class, 'backdateTerm']);
+
+Route::post('/subjects', [Subject::class, 'store']);
+
+Route::delete('/subject', [Subject::class, 'delete']);
+
+Route::get('/term-registration', [StudentTermDetail::class, 'showAll']);
