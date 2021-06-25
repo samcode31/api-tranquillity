@@ -234,12 +234,18 @@ class ReportCard extends Controller
                 $total_sessions = $studentTermDetailsRecord->total_sessions;
                 $form_teacher_comment = $studentTermDetailsRecord->teacher_comment;
                 $new_term_beginning = $studentTermDetailsRecord->new_term_beginning;
-
+                $vice_principal_id = $studentTermDetailsRecord->vice_principal;
+                $vice_principal = Employee::where('id', $vice_principal_id)->first();
+                $vice_principal_name = null;
+                if($vice_principal){
+                    $vice_principal_name = $vice_principal->first_name[0].'. '.$vice_principal->last_name;
+                }
                 $studentTermDetails['sessions_absent'] = $sessions_absent;            
                 $studentTermDetails['sessions_late'] = $sessions_late;            
                 $studentTermDetails['total_sessions'] = $total_sessions;            
                 $studentTermDetails['form_teacher_comment'] = $form_teacher_comment;            
-                $studentTermDetails['new_term_beginning'] = $new_term_beginning; 
+                $studentTermDetails['new_term_beginning'] = $new_term_beginning;
+                $studentTermDetails['vice_principal'] = $vice_principal_name; 
             }
             else{
                 $studentTermDetails['sessions_absent'] = null;            
@@ -450,10 +456,15 @@ class ReportCard extends Controller
 
             $this->pdf->SetFont('Times','I','10');
             $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");        
+            
             $this->pdf->SetFont('Times','B','10');
             $this->pdf->Cell(10,7,"Dean:",0,0,"L");
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(130,7,$record['term_details']['form_dean'], 0,0,"L");
+            $this->pdf->Cell(100,7,$record['term_details']['form_dean'], 0,0,"L");
+            $this->pdf->SetFont('Times','B','10');
+            $this->pdf->Cell(50,7,"Vice Principal:", 0,0,"R");
+            $this->pdf->SetFont('Times','I','10');
+            $this->pdf->Cell(35.9,7,$record['term_details']['vice_principal'], 0,0,"L");
             // $this->pdf->SetFont('Times','B','10');
             // $this->pdf->Cell(12,7,"Date:", 0);
             // $this->pdf->SetFont('Times','I','10');
