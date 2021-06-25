@@ -59,7 +59,6 @@ class ReportCard extends Controller
         $term_configuration = TermConfiguration::where('academic_term_id', $termId)->first();
         if($term_configuration){
             $course_mark_only = ($term_configuration->exam_mark === 0) ? true : false;
-            $exam_mark_only = ($term_configuration->course_mark === 0) ? true : false;
         }
        
         $form_level = FormClass::whereId($formClass)->first()->form_level;
@@ -236,16 +235,17 @@ class ReportCard extends Controller
                 $new_term_beginning = $studentTermDetailsRecord->new_term_beginning;
                 $vice_principal_id = $studentTermDetailsRecord->vice_principal;
                 $vice_principal = Employee::where('id', $vice_principal_id)->first();
-                $vice_principal_name = null;
-                if($vice_principal){
-                    $vice_principal_name = $vice_principal->first_name[0].'. '.$vice_principal->last_name;
-                }
+                $vice_principal_name = $vice_principal ?  $vice_principal->first_name[0].'. '.$vice_principal->last_name : null;
+                $principal_id = $studentTermDetailsRecord->principal;
+                $principal = Employee::where('id', $principal_id)->first();
+                $principal_name = $principal ? $principal->first_name[0].'. '.$principal->last_name : null;
                 $studentTermDetails['sessions_absent'] = $sessions_absent;            
                 $studentTermDetails['sessions_late'] = $sessions_late;            
                 $studentTermDetails['total_sessions'] = $total_sessions;            
                 $studentTermDetails['form_teacher_comment'] = $form_teacher_comment;            
                 $studentTermDetails['new_term_beginning'] = $new_term_beginning;
-                $studentTermDetails['vice_principal'] = $vice_principal_name; 
+                $studentTermDetails['vice_principal'] = $vice_principal_name;
+                $studentTermDetails['principal'] = $principal_name; 
             }
             else{
                 $studentTermDetails['sessions_absent'] = null;            
@@ -432,43 +432,40 @@ class ReportCard extends Controller
             $this->pdf->Cell(30,8,"E : Poor", 'TB', 0, 'C');            
             $this->pdf->Cell(45.9,8,"NW : No Work Submitted", 'TBR', 0, 'C');
 
-            $this->pdf->Ln(10);        
+            $this->pdf->Ln(10);
+            $border = 0;        
             $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(0,5,"Form Teacher's Comments:", 0, "J");
+            $this->pdf->Cell(98,5,"Form Teacher's Comments:", $border, "J");
+            $this->pdf->Cell(25,5,"Form Teachers:", $border);
+            $this->pdf->SetFont('Times','I','10');
+            $this->pdf->Cell(72.9,5,$record['term_details']['form_teachers'], $border,0,"L");
             $this->pdf->Ln();
 
             $this->pdf->SetFont('Times','I','10');
             $this->pdf->MultiCell(0, 5, $record['term_details']['form_teacher_comment']."\n\t", 1, "J");        
             $this->pdf->SetFont('Times','B','10');
 
-            $this->pdf->Cell(25,7,"Form Teachers:", 0);
+            $border = 0;
+            $this->pdf->SetFont('Times','B','10');
+            $this->pdf->Cell(98,5,"Dean's Comments:", $border, "J");
+            $this->pdf->SetFont('Times','B','10');
+            $this->pdf->Cell(10,5,"Dean:",$border,0,"L");
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(130,7,$record['term_details']['form_teachers'], 0,0,"L");
-            $this->pdf->SetFont('Times','B','10');
-            // $this->pdf->Cell(12,7,"Date:", 0);
-            // $this->pdf->SetFont('Times','I','10');
-            // $this->pdf->Cell(54,7,'', 0, 0,"L");            
-            $this->pdf->Ln(10);
-
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(0,5,"Dean's Comments:", 0, "J");
+            $this->pdf->Cell(87.9,5,$record['term_details']['form_dean'], $border,0,"L");
             $this->pdf->Ln();
 
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");        
+            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");      
             
+            $border = 0;
             $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(10,7,"Dean:",0,0,"L");
+            $this->pdf->Cell(25,7,"Vice Principal:", $border,0,"L");
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(100,7,$record['term_details']['form_dean'], 0,0,"L");
+            $this->pdf->Cell(73,7,$record['term_details']['vice_principal'], $border,0,"L");
             $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(50,7,"Vice Principal:", 0,0,"R");
+            $this->pdf->Cell(18,7,"Principal:", $border,0,"L");
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(35.9,7,$record['term_details']['vice_principal'], 0,0,"L");
-            // $this->pdf->SetFont('Times','B','10');
-            // $this->pdf->Cell(12,7,"Date:", 0);
-            // $this->pdf->SetFont('Times','I','10');
-            // $this->pdf->Cell(54,7,'', 0, 0,"L");            
+            $this->pdf->Cell(79.9,7,$record['term_details']['principal'], $border,0,"L");
             $this->pdf->Ln();
 
             // $this->pdf->Cell(65, 10, "",'B');
