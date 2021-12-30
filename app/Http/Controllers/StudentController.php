@@ -142,8 +142,9 @@ class StudentController extends Controller
         $userAccounts = 0;
         for($i = 2; $i <= $rows; $i++){
             $id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(1,$i)->getValue();
-            $firstName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue();
-            $lastName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue();
+            $lastName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue();
+            $firstName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue();
+            
             $gender = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(4,$i)->getValue();            
             $classId = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(5,$i)->getValue();
             $birthPin = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(6,$i)->getValue();

@@ -90,7 +90,7 @@ class ClassList extends Controller
             $this->fpdf->Cell(10, 6, $count , $border , 0, 'C');
             $this->fpdf->Cell(20, 6, $record['student_id'] , $border, 0, 'C');
             $this->fpdf->Cell(10, 6, '', $border, 0, 'C');
-            $this->fpdf->Cell(50, 6, $record['first_name'].' '.$record['last_name'] , $border, 0,  'L');
+            $this->fpdf->Cell(50, 6, $record['last_name'].', '.$record['first_name'] , $border, 0,  'L');
             $this->fpdf->Cell(25, 6, $record['gender'] , $border, 0,  'C');
             $this->fpdf->Cell(25, 6, $dob, $border, 0,  'R');
             $this->fpdf->Cell(5, 6, '', $border, 0, 'C');

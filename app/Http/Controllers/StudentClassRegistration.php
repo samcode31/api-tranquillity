@@ -114,7 +114,9 @@ class StudentClassRegistration extends Controller
                     $promotedClassId = "5".substr($record->form_class_id, 1);
                     break;
                 case 6:
-                    $promotedClassId = "6".substr($record->form_class_id, 1);
+                    if($record->form_class_id == '6 Lw'){
+                        $promotedClassId = "6 Up";
+                    }                   
                     break;    
             }
 
