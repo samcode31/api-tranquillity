@@ -13,19 +13,21 @@ class TeacherLesson extends Controller
 {
     public function show($id)
     {
-        
-        $lessons = ModelsTeacherLesson::whereEmployeeId($id)->get();
+        $academicTerm = AcademicTerm::where('is_current',1)->first();
+        $academicYearId = null;
+        if($academicTerm){
+            $academicYearId = $academicTerm->academic_year_id;
+        }
+        $lessons = ModelsTeacherLesson::where([
+            ['employee_id', $id],
+            ['academic_year_id', $academicYearId]
+        ])
+        ->get();
         $records = [];
         foreach($lessons as $lesson){
-            $lesson_record = [];
-            $lesson_record['employee_id'] = $lesson->employee_id;
-            $lesson_record['subject_id'] = $lesson->subject_id;
-            $lesson_record['form_class_id'] = $lesson->form_class_id;
-            $lesson_record['subject_title'] = $lesson->subject->title;
-            $lesson_record['form_level'] = $lesson->formClass->form_level;
             $lesson->subject;
             $lesson->formClass;
-            array_push($records, $lesson_record);
+            array_push($records, $lesson);
         }
 
         return $records;
