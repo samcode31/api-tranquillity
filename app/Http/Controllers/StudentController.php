@@ -134,7 +134,7 @@ class StudentController extends Controller
         //return $academicYearId;
         //return $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,2)->getValue();
         $rows = $spreadsheet->getActiveSheet()->getHighestDataRow();
-        //return $rows;
+        // return $rows;
         //return $classId = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(28,2)->getValue();
         $records = [];
         $studentRecords = 0;
@@ -155,7 +155,7 @@ class StudentController extends Controller
                     'id' => $id, 
                     'last_name' => $lastName, 
                     'first_name' => $firstName, 
-                    'gender' => $gender, 
+                    'gender' => $gender[0], 
                     'birth_certificate_pin' => $birthPin,
                     'date_of_birth' => $dateOfBirth
                 ]
