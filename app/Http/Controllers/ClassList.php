@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
+use App\Models\FormTeacherAssignment;
 use App\Models\StudentClassRegistration;
 use Illuminate\Http\Request;
 use Codedge\Fpdf\Fpdf\Fpdf;
@@ -19,40 +21,45 @@ class ClassList extends Controller
 
     public function show($form_class_id, $academic_year_id)
     {
-        $logo = public_path('/imgs/logo.png');
-        $school = strtoupper(config('app.school_name')).' SCHOOL';
-        $primaryRed = config('app.primary_red');        
-        $primaryGreen = config('app.primary_green');        
-        $primaryBlue = config('app.primary_blue');
-        $secondaryRed = config('app.secondary_red');        
-        $secondaryGreen = config('app.secondary_green');        
-        $secondaryBlue = config('app.secondary_blue');        
-        $address = config('app.school_address');
-        $contact = config('app.school_contact');
-
         date_default_timezone_set('America/Caracas');
 
-        $studentClassRegistrations = StudentClassRegistration::where([
+        $students = StudentClassRegistration::join(
+            'students',
+            'students.id',
+            'student_class_registrations.student_id'
+        )
+        ->where([
             ['academic_year_id', $academic_year_id],
             ['form_class_id', $form_class_id]
-        ])       
+        ])
+        ->select(
+            'student_class_registrations.student_id',
+            'students.first_name',
+            'students.last_name',
+            'students.gender',
+            'students.date_of_birth',
+            'students.birth_certificate_pin'
+        )
+        ->orderBy('gender', 'desc')       
+        ->orderBy('last_name')
+        ->orderBy('first_name')
         ->get();
 
-        //return $studentClassRegistrations;
+        //return $students;
 
         $classList = [];
         $females = null;
         $males = null;
 
-        //return $studentClassRegistrations[0]->student;
+        //return $students[0]->student;
 
-        foreach($studentClassRegistrations as $studentClassRegistration)
+        foreach($students as $student)
         {
             $record = [];
            
-            $record['student_id'] = $studentClassRegistration->student_id;
-            $record['form_class_id'] = $studentClassRegistration->form_class_id;
-            $student = $studentClassRegistration->student;
+            $record['student_id'] = $student->student_id;
+            $record['form_class_id'] = $student->form_class_id;
+            $student = $student->student;
             $gender = $student->gender;
             if($gender == 'F') $females++;
             if($gender == 'M') $males++;
@@ -64,19 +71,13 @@ class ClassList extends Controller
             array_push($classList, $record);
         }
 
-        $first_name_column = array_column($classList, 'first_name');
-        $last_name_column = array_column($classList, 'last_name');
-        array_multisort($last_name_column, SORT_ASC, $first_name_column, SORT_ASC, $classList);
-
-        //return $classList;
-        
         $this->fpdf = new Fpdf('P', 'mm', 'Letter');
         $this->fpdf->AliasNbPages();
         $this->fpdf->SetMargins(20, 8);
         $this->fpdf->SetAutoPageBreak(false);
 
         $this->fpdf->AddPage();
-        $this->header($form_class_id);        
+        $this->header($form_class_id, $academic_year_id);        
         $this->fpdf->SetDrawColor(219, 219, 219); 
 
         $count = 0;
@@ -102,7 +103,7 @@ class ClassList extends Controller
                 $this->fpdf->Cell(88, 6, 'Report Generated: '.date("d/m/Y h:i:sa"), 0, 0, 'L');
                 $this->fpdf->Cell(88, 6, 'Page '.$this->fpdf->PageNo().'/{nb}', 0, 0, 'R');
                 $this->fpdf->AddPage();
-                $this->header($form_class_id);                
+                $this->header($form_class_id, $academic_year_id);                
             }
             
         }
@@ -122,7 +123,7 @@ class ClassList extends Controller
         exit;
     }
 
-    private function header($form_class_id){
+    private function header($form_class_id, $academic_year_id){
         $logo = public_path('/imgs/logo.png');
         $school = strtoupper(config('app.school_name')).' SCHOOL';
         $primaryRed = config('app.primary_red');        
@@ -134,7 +135,37 @@ class ClassList extends Controller
         $address = config('app.school_address');
         $contact = config('app.school_contact');
 
-        $this->fpdf->Image($logo, 10, 9, 16);
+        $academicYearRecord = AcademicYear::where('id', $academic_year_id)
+        ->first();
+        $academicYear = null;
+        if($academicYearRecord){
+            $yearStart = date_create($academicYearRecord->start);
+            $yearEnd = date_create($academicYearRecord->end);
+            $academicYear = date_format($yearStart, "Y")."-".date_format($yearEnd, "Y");
+        }
+
+        $formTeachers = [];      
+        $formTeacherAssignments = FormTeacherAssignment::join(
+            'employees',
+            'employees.id',
+            'form_teacher_assignments.employee_id'
+        )
+        ->select(
+            'first_name',
+            'last_name'
+        )
+        ->where([
+            ['academic_year_id', $academic_year_id],
+            ['form_class_id', $form_class_id]
+        ])->get();
+
+        if(sizeof($formTeacherAssignments) > 0){
+            foreach($formTeacherAssignments as $assignment){
+                $formTeachers[] = $assignment->first_name[0].'. '.$assignment->last_name;
+            }
+        }
+
+        $this->fpdf->Image($logo, 10, 9, 18);
         $this->fpdf->SetFont('Times', 'B', '18');
         
         //$this->fpdf->SetTextColor(50, 52, 155);
@@ -145,13 +176,19 @@ class ClassList extends Controller
         $this->fpdf->MultiCell(0, 6, $address, 0, 'C' );
         $this->fpdf->MultiCell(0, 6, $contact, 0, 'C' );            
         $this->fpdf->SetFont('Times', 'B', 15);
-        $this->fpdf->MultiCell(0, 6, $form_class_id.' Class list', 0, 'C' );
+        $this->fpdf->MultiCell(0, 6, 'Academic Period: '.$academicYear, 0, 'C' );
         $this->fpdf->Ln(10);
 
         $this->fpdf->SetFont('Times', 'B', 14);
         $this->fpdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
-        $this->fpdf->Cell(88, 8, 'Form Teacher/s: ' , 0 , 0, 'L');
-        $this->fpdf->Cell(88, 8, '' , 0 , 0, 'C');
+        $this->fpdf->Cell(32, 8, 'Class: '.$form_class_id , 0 , 0, 'L');
+        $this->fpdf->Cell(36, 8, '' , 0 , 0, 'L');
+        if(sizeof($formTeachers) > 0){
+            $this->fpdf->Cell(108, 8, 'Form Teachers: '.implode(" / ", $formTeachers) , 0 , 0, 'R');
+        }
+        else{
+            $this->fpdf->Cell(108, 8, 'Form Teacher: ' , 0 , 0, 'R');
+        }
         $this->fpdf->Ln(10);
 
         $this->fpdf->SetFont('Times', '', 12);
@@ -165,5 +202,27 @@ class ClassList extends Controller
         $this->fpdf->Cell(31, 8, 'Birth Cert. Pin', 0, 0, 'C', true);
         $this->fpdf->Ln();
 
+    }
+
+    public function academicYears ()
+    {
+        $data = [];
+        $academicYearRegistration = StudentClassRegistration::select('academic_year_id')
+        ->distinct()
+        ->orderBy('academic_year_id', 'asc')
+        ->get();
+        
+        foreach($academicYearRegistration as $registration){
+            $year = []; 
+            $academicYear = AcademicYear::where('id', $registration->academic_year_id)->first();
+            if($academicYear){
+                $year['academic_year_id'] = $academicYear->id;
+                $year['start'] = date_format(date_create($academicYear->start), 'Y');
+                $year['end'] = date_format(date_create($academicYear->end), 'Y');
+                array_push($data, $year);
+            }
+        }
+
+        return $data;
     }
 }

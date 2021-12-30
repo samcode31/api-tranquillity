@@ -182,6 +182,8 @@ Route::get('/mark-sheet-terms', [ClassMarkSheet::class, 'terms']);
 
 Route::get('/report-card-terms', [ReportCard::class, 'terms']);
 
+Route::get('/class-list-years', [ClassList::class, 'academicYears']);
+
 //----------------------------- Students --------------------------------------
 
 Route::get('/students', [StudentController::class, 'show']);
@@ -235,3 +237,5 @@ Route::post('/subjects', [Subject::class, 'store']);
 Route::delete('/subject', [Subject::class, 'delete']);
 
 Route::get('/term-registration', [StudentTermDetail::class, 'showAll']);
+
+Route::post('/promote', [StudentClassRegistration::class, 'promote']);

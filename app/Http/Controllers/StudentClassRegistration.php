@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademicTerm;
+use App\Models\AcademicYear;
 use App\Models\Student;
 use App\Models\StudentClassRegistration as ModelsStudentClassRegistration;
 use Illuminate\Http\Request;
@@ -57,5 +58,79 @@ class StudentClassRegistration extends Controller
             );
             
         }    
+    }
+
+    public function promote ()
+    {
+        $academicTerm = AcademicTerm::where('is_current', 1)
+        ->first();
+
+        $currentAcademicYearId = null;
+
+        if($academicTerm){
+            $currentAcademicYearId = $academicTerm->academic_year_id;
+        }
+        
+        $academicYears = AcademicYear::orderBy('id', 'desc')
+        ->get();
+
+        $previousAcademicYearId = null;
+
+        if($academicYears[1]){
+            $previousAcademicYearId = $academicYears[1]->id;
+        }
+
+        $studentClassRegistrations = ModelsStudentClassRegistration::join(
+            'form_classes',
+            'form_classes.id',
+            'student_class_registrations.form_class_id'
+        )
+        ->select(
+            'student_id',
+            'form_class_id',
+            'form_level'
+        )
+        ->where(
+            'academic_year_id',
+            $previousAcademicYearId
+        )
+        ->orderBy('form_class_id')
+        ->get();
+
+        foreach($studentClassRegistrations as $record){
+            $promotedClassId = null;
+
+            switch($record->form_level){
+                case 1:
+                    $promotedClassId = "2".substr($record->form_class_id, 1);
+                    break;
+                case 2:
+                    $promotedClassId = "3".substr($record->form_class_id, 1);
+                    break;
+                case 3:
+                    $promotedClassId = "4".substr($record->form_class_id, 1);
+                    break;
+                case 4:
+                    $promotedClassId = "5".substr($record->form_class_id, 1);
+                    break;
+                case 6:
+                    $promotedClassId = "6".substr($record->form_class_id, 1);
+                    break;    
+            }
+
+            if($promotedClassId){
+                ModelsStudentClassRegistration::updateOrCreate(
+                    [
+                        'student_id' => $record->student_id,
+                        'academic_year_id' => $currentAcademicYearId
+                    ],
+                    [
+                        'form_class_id' => $promotedClassId
+                    ]
+                );
+            }
+
+            
+        }
     }
 }
