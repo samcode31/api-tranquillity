@@ -209,6 +209,8 @@ class StudentController extends Controller
             'student_class_registrations.form_class_id'
         )
         ->where('student_class_registrations.academic_year_id', $academic_year_id)
+        ->orderBy('last_name')
+        ->orderBy('first_name')
         ->get();
         
         return $currentStudents;

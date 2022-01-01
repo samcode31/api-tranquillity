@@ -56,12 +56,26 @@ class ReportCard extends Controller
 
         $term = $academic_term->term;
 
-        $term_configuration = TermConfiguration::where('academic_term_id', $termId)->first();
+        $formLevel = FormClass::whereId($formClass)->first()->form_level;
+
+        $term_configuration = TermConfiguration::where([
+            ['academic_term_id', $termId]
+        ])
+        ->whereNull('form_level')
+        ->first();
+
         if($term_configuration){
             $course_mark_only = ($term_configuration->exam_mark === 0) ? true : false;
         }
-       
-        $form_level = FormClass::whereId($formClass)->first()->form_level;
+
+        $term_configuration = TermConfiguration::where([
+            ['academic_term_id', $termId],
+            ['form_level', $formLevel]
+        ])->first();
+
+        if($term_configuration){
+            $course_mark_only = ($term_configuration->exam_mark === 0) ? true : false;
+        } 
 
         $formDeanAssignments = FormDeanAssignment::where([
             ['form_class_id', $formClass],
