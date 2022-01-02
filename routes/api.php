@@ -162,6 +162,8 @@ Route::get('/preset-comments', [CommentTemplate::class, 'show']);
 
 Route::post('/term-marks', [StudentTermMark::class, 'store']);
 
+Route::get('/term-configuration/{formLevel}', [AcademicTerm::class, 'termConfiguration']);
+
 //----------------------------Edit / View Term Reports -----------------------
 
 Route::get('/students-registered/{term}/{class}', [StudentTermDetail::class, 'show']); 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AcademicTerm as ModelsAcademicTerm;
 use App\Models\AcademicYear;
 use App\Models\StudentTermDetail;
+use App\Models\TermConfiguration;
 use Illuminate\Http\Request;
 
 
@@ -125,13 +126,41 @@ class AcademicTerm extends Controller
         return $data;
     }
 
-    public function termConfiguration(){
-        $current_academic_term_id = ModelsAcademicTerm::where('is_current', 1)
-        ->first()
-        ->id;
+    public function termConfiguration($formLevel){
+        $academic_term = ModelsAcademicTerm::where('is_current', 1)->first();
+        
+        if($academic_term){
+            $termConfiguration = TermConfiguration::where([
+                [
+                    'academic_term_id',
+                    $academic_term->id
+                ],
+                [
+                    'form_level',
+                    $formLevel
+                ]
+            ])->first();
 
-        return $current_academic_term_id;
+            if($termConfiguration) return $termConfiguration;
+             
 
+            $termConfiguration = TermConfiguration::where([
+                [
+                    'academic_term_id',
+                    $academic_term->id
+                ],
+                [
+                    'form_level',
+                    null
+                ]
+            ])
+            ->first();
+
+            if($termConfiguration) return $termConfiguration;
+            
+            
+        }
+        abort(500);
     }
 
     public function showHistory()
@@ -176,4 +205,6 @@ class AcademicTerm extends Controller
         return abort(500);
        
     }
+
+    
 }
