@@ -150,8 +150,10 @@ class ClassMarkSheet extends Controller
             $student_record['sessions_late'] = $student->sessions_late;
             $student_record['term_marks'] = $student_term_marks;
             $student = $student->student;
-            $student_record['name'] = $student->last_name.', '.$student->first_name;
-            array_push($data, $student_record); 
+            if($student){
+                $student_record['name'] = $student->last_name.', '.$student->first_name;
+                array_push($data, $student_record); 
+            }
         }
         
         $data = $this->sort($data);
