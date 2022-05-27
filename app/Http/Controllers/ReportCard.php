@@ -22,25 +22,25 @@ class ReportCard extends Controller
     protected $pdf;
 
     public function __construct(\App\Models\Pdf $pdf)
-    {        
+    {
         $this->pdf = $pdf;
     }
-    
+
     public function show($termId, $formClass, $student_id=null){
         $logo = public_path('/imgs/logo.png');
-        $waterMark = public_path('/imgs/logo5%.png');        
-        $data = [];        
+        $waterMark = public_path('/imgs/logo5%.png');
+        $data = [];
         $school = strtoupper(config('app.school_name'));
-        $primaryRed = config('app.primary_red');        
-        $primaryGreen = config('app.primary_green');        
+        $primaryRed = config('app.primary_red');
+        $primaryGreen = config('app.primary_green');
         $primaryBlue = config('app.primary_blue');
-        $secondaryRed = config('app.secondary_red');        
-        $secondaryGreen = config('app.secondary_green');        
-        $secondaryBlue = config('app.secondary_blue');         
+        $secondaryRed = config('app.secondary_red');
+        $secondaryGreen = config('app.secondary_green');
+        $secondaryBlue = config('app.secondary_blue');
         $address = config('app.school_address');
         $formDean = null;
         $term = null;
-        $pass_mark = 50;        
+        $pass_mark = 50;
         $conduct = null;
         $class_total = 0;
         $sessions_absent = 0;
@@ -48,10 +48,10 @@ class ReportCard extends Controller
         $total_sessions = 0;
         $course_mark_only = false;
         $exam_mark_only = false;
-        
+
         $academic_term = AcademicTerm::whereId($termId)
         ->first();
-        
+
         $academic_year_id = $academic_term->academic_year_id;
 
         $term = $academic_term->term;
@@ -75,18 +75,19 @@ class ReportCard extends Controller
 
         if($term_configuration){
             $course_mark_only = ($term_configuration->exam_mark === 0) ? true : false;
-        } 
+        }
 
         $formDeanAssignments = FormDeanAssignment::where([
             ['form_class_id', $formClass],
             ['academic_year_id', $academic_year_id]
         ])
-        ->get();        
+        ->get();
 
         $numberOfDeans = sizeof($formDeanAssignments);
 
         foreach($formDeanAssignments as $key => $dean ){
-            $employee = Employee::whereId($dean->employee_id)->first();
+            $employee = Employee::withTrashed()
+            ->whereId($dean->employee_id)->first();
             $formDean .= $employee->first_name[0].". ".$employee->last_name;
             if($key+1 != $numberOfDeans) $formDean.="/";
         }
@@ -106,13 +107,13 @@ class ReportCard extends Controller
             ])
             ->get();
         }
-        
+
         $class_students = StudentClassRegistration::where([
             ['form_class_id', $formClass],
             ['academic_year_id', $academic_year_id]
         ])
         ->get();
-        
+
         $class_total = sizeof($class_students);
 
         if($course_mark_only)
@@ -120,33 +121,33 @@ class ReportCard extends Controller
         else $class_summaries = $this->classTermSummary($class_students, $termId, 1, $pass_mark);
 
         foreach($students as $student){
-            $formTeacher = null; 
+            $formTeacher = null;
             $studentRecord = [];
             $studentTermMarks = [];
-            $studentTermDetails = [];           
-            
+            $studentTermDetails = [];
+
             $studentId = $student->student_id;
-            
+
             $distinctSubjects = ModelsStudentTermMark::join('subjects', 'student_term_marks.subject_id', 'subjects.id')
             ->where([
-                ['student_id', $studentId], 
-                ['academic_term_id', $termId]   
+                ['student_id', $studentId],
+                ['academic_term_id', $termId]
             ])
             ->select('subject_id', 'subjects.title')
             ->distinct()
-            ->orderBy('subjects.title')            
+            ->orderBy('subjects.title')
             ->get();
 
             //return $distinctSubjects;
 
             if($course_mark_only)
             $student_performance = $this->studentPerformance($studentId, $academic_term->id, 2, $pass_mark);
-            else $student_performance = $this->studentPerformance($studentId, $academic_term->id, 1, $pass_mark);           
-            
+            else $student_performance = $this->studentPerformance($studentId, $academic_term->id, 1, $pass_mark);
+
             foreach($distinctSubjects as $subject){
                 $studentMarkRecord = [];
-                $subjectId = $subject->subject_id;            
-               
+                $subjectId = $subject->subject_id;
+
                 $studentSubjectComment = StudentSubjectComment::where([
                     ['student_id', $studentId],
                     ['academic_term_id', $termId],
@@ -164,7 +165,7 @@ class ReportCard extends Controller
                 }
                 else{
                     $studentMarkRecord['comment'] = null;
-                    $studentMarkRecord['conduct'] = null;                   
+                    $studentMarkRecord['conduct'] = null;
                 }
 
                 $studentMarkRecordExists = ModelsStudentTermMark::where([
@@ -172,20 +173,20 @@ class ReportCard extends Controller
                     ['academic_term_id', $termId],
                     ['subject_id', $subjectId],
                 ])->exists();
-                
-                if($studentMarkRecordExists){                
+
+                if($studentMarkRecordExists){
                     $studentExamMarkRecord = ModelsStudentTermMark::where([
                         ['student_id', $studentId],
                         ['academic_term_id', $termId],
                         ['subject_id', $subjectId],
                         ['test_id', 1]
-                    ])->first();                                       
+                    ])->first();
                     $studentCourseMarkRecord = ModelsStudentTermMark::where([
                         ['student_id', $studentId],
                         ['academic_term_id', $termId],
                         ['subject_id', $subjectId],
                         ['test_id', 2]
-                    ])->first();                    
+                    ])->first();
                     $studentMarkRecord['course_mark'] = $studentCourseMarkRecord->mark;
                     $courseAttendance = $studentCourseMarkRecord->assesment_attendance_id;
                     if($courseAttendance == 2) $studentMarkRecord['course_mark'] = 'ABS';
@@ -194,7 +195,8 @@ class ReportCard extends Controller
                     $examAttendance = $studentExamMarkRecord->assesment_attendance_id;
                     if($examAttendance == 2) $studentMarkRecord['exam_mark'] = 'ABS';
                     $employee_id = $studentCourseMarkRecord->employee_id;
-                    $employee = Employee::whereId($employee_id)->first();
+                    $employee = Employee::withTrashed()
+                    ->whereId($employee_id)->first();
                     $studentMarkRecord['employee_id'] = $studentCourseMarkRecord->employee_id;
                     $studentMarkRecord['teacher'] = $employee->first_name[0].'. '.$employee->last_name;
                     //return $this->highestMark($subjectId, $formClass, $termId, 2);
@@ -203,28 +205,30 @@ class ReportCard extends Controller
                     }
                     else{
                         $studentMarkRecord['highest_mark'] = $this->highestMark($subjectId, $formClass, $termId, 1);
-                    }                                      
+                    }
                 }
-                else{                   
+                else{
                     $studentMarkRecord['course_mark'] = null;
                     $studentMarkRecord['course_attendance'] = 1;
                     $studentMarkRecord['exam_mark'] = null;
                     $studentMarkRecord['exam_attendance'] = 1;
-                    $studentMarkRecord['employee_id'] = null;                    
+                    $studentMarkRecord['employee_id'] = null;
                 }
-               
-                $firstName = Student::whereId($studentId)->first()->first_name;
-                $lastName = Student::whereId($studentId)->first()->last_name;
+
+                $firstName = Student::withTrashed()
+                ->whereId($studentId)->first()->first_name;
+                $lastName = Student::withTrashed()
+                ->whereId($studentId)->first()->last_name;
                 $studentMarkRecord['student_id'] = $studentId;
                 $studentMarkRecord['academic_term_id'] = $termId;
-                $studentMarkRecord['subject_id'] = $subjectId;           
+                $studentMarkRecord['subject_id'] = $subjectId;
                 $studentMarkRecord['first_name'] = $firstName;
                 $studentMarkRecord['last_name'] =  $lastName;
-                $studentMarkRecord['subject'] = Subject::whereId($subjectId)->first()->title;                
-                           
-                array_push($studentTermMarks, $studentMarkRecord);            
+                $studentMarkRecord['subject'] = Subject::whereId($subjectId)->first()->title;
+
+                array_push($studentTermMarks, $studentMarkRecord);
             }
-            
+
             $student_dean_comment = StudentDeanComment::where([
                 ['student_id', $studentId],
                 ['academic_term_id', $termId]
@@ -234,7 +238,7 @@ class ReportCard extends Controller
                 $studentTermDetails['dean_comment'] = $student_dean_comment->comment;
             }
             else $studentTermDetails['dean_comment'] = null;
-            
+
             $studentTermDetailsRecord = StudentTermDetail::where([
                 ['student_id', $studentId],
                 ['academic_term_id', $termId]
@@ -248,25 +252,29 @@ class ReportCard extends Controller
                 $form_teacher_comment = $studentTermDetailsRecord->teacher_comment;
                 $new_term_beginning = $studentTermDetailsRecord->new_term_beginning;
                 $vice_principal_id = $studentTermDetailsRecord->vice_principal;
-                $vice_principal = Employee::where('id', $vice_principal_id)->first();
+                $vice_principal = Employee::withTrashed()
+                ->where('id', $vice_principal_id)->first();
                 $vice_principal_name = $vice_principal ?  $vice_principal->first_name[0].'. '.$vice_principal->last_name : null;
                 $principal_id = $studentTermDetailsRecord->principal;
-                $principal = Employee::where('id', $principal_id)->first();
+                $principal = Employee::withTrashed()
+                ->where('id', $principal_id)->first();
                 $principal_name = $principal ? $principal->first_name[0].'. '.$principal->last_name : null;
-                $studentTermDetails['sessions_absent'] = $sessions_absent;            
-                $studentTermDetails['sessions_late'] = $sessions_late;            
-                $studentTermDetails['total_sessions'] = $total_sessions;            
-                $studentTermDetails['form_teacher_comment'] = $form_teacher_comment;            
+                $studentTermDetails['sessions_absent'] = $sessions_absent;
+                $studentTermDetails['sessions_late'] = $sessions_late;
+                $studentTermDetails['total_sessions'] = $total_sessions;
+                $studentTermDetails['form_teacher_comment'] = $form_teacher_comment;
                 $studentTermDetails['new_term_beginning'] = $new_term_beginning;
                 $studentTermDetails['vice_principal'] = $vice_principal_name;
-                $studentTermDetails['principal'] = $principal_name; 
+                $studentTermDetails['principal'] = $principal_name;
             }
             else{
-                $studentTermDetails['sessions_absent'] = null;            
-                $studentTermDetails['sessions_late'] = null;            
-                $studentTermDetails['total_sessions'] = null;            
-                $studentTermDetails['form_teacher_comment'] = null;            
-                $studentTermDetails['new_term_beginning'] = null; 
+                $studentTermDetails['sessions_absent'] = null;
+                $studentTermDetails['sessions_late'] = null;
+                $studentTermDetails['total_sessions'] = null;
+                $studentTermDetails['form_teacher_comment'] = null;
+                $studentTermDetails['new_term_beginning'] = null;
+                $studentTermDetails['vice_principal'] = null;
+                $studentTermDetails['principal'] = null;
             }
 
             $studentTermDetails['average'] = $student_performance['average'];
@@ -288,7 +296,8 @@ class ReportCard extends Controller
                 foreach($formTeacherAssignments as $formTeacherAssigned)
                 {
                     $count++;
-                    $employee = Employee::whereId($formTeacherAssigned->employee_id)->first();
+                    $employee = Employee::withTrashed()
+                    ->whereId($formTeacherAssigned->employee_id)->first();
                     $employeeName = $employee->first_name[0].'. '.$employee->last_name;
                     $formTeacher .= $employeeName;
                     //return $count < $numberOfFormTeachers;
@@ -300,47 +309,49 @@ class ReportCard extends Controller
             else{
                 $studentTermDetails['form_teachers'] = null;
             }
-            
+
             $studentTermDetails['form_dean'] = $formDean;
-            
-            $firstName = Student::whereId($studentId)->first()->first_name;
-            $lastName = Student::whereId($studentId)->first()->last_name;
+
+            $firstName = Student::withTrashed()
+            ->whereId($studentId)->first()->first_name;
+            $lastName = Student::withTrashed()
+            ->whereId($studentId)->first()->last_name;
 
             $studentRecord['student'] = $firstName.' '.$lastName;
             $studentRecord['student_id'] = $studentId;
             $studentRecord['marks'] = $studentTermMarks;
-            $studentRecord['term_details'] = $studentTermDetails;            
+            $studentRecord['term_details'] = $studentTermDetails;
 
             array_push($data, $studentRecord);
-           
+
         }
 
         //return $data;
 
         $this->pdf->SetMargins(10, 8);
         $this->pdf->SetAutoPageBreak(false);
-        
+
         foreach($data as $record){
             $this->pdf->AddPage('P', 'Letter');
             $this->pdf->Image($logo, 8, 6, 27);
             $this->pdf->SetFont('Times', 'B', '20');
-            $this->pdf->Image($waterMark, 20, 70, 175);            
+            $this->pdf->Image($waterMark, 20, 70, 175);
             $this->pdf->SetTextColor($primaryRed, $primaryGreen, $primaryBlue);
             $this->pdf->SetX(30);
             $this->pdf->MultiCell(0, 8, $school.' SCHOOL', 0, 'C' );
             $this->pdf->SetFont('Times', 'I', 9);
             $this->pdf->SetX(30);
-            $this->pdf->MultiCell(0, 6, $address, 0, 'C' );                     
+            $this->pdf->MultiCell(0, 6, $address, 0, 'C' );
             $this->pdf->SetFont('Times', 'B', 12);
             $this->pdf->Ln(3);
 
             $this->pdf->SetFont('Times', 'UBI', 16);
             $this->pdf->MultiCell(0,6, $record['student'].' ', 0, 'C');
             $this->pdf->Ln(3);
-            
+
             $this->pdf->SetDrawColor(219, 219, 219);
             $this->pdf->SetTextColor(0, 0, 0);
-            $this->pdf->SetFont('Times', '', 11);            
+            $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(12, 6, "\tClass: ", 'TL', 0, 'L');
             $this->pdf->SetFont('Times', 'B', 11);
             $this->pdf->Cell(68, 6, $formClass, 'T', 0, 'L');
@@ -351,7 +362,7 @@ class ReportCard extends Controller
             $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(50, 6, "\tStudent Average: ", 'T', 0, 'R');
             $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(15.9, 6, $record['term_details']['average'].'%', 'TR', 0, 'L');           
+            $this->pdf->Cell(15.9, 6, $record['term_details']['average'].'%', 'TR', 0, 'L');
             $this->pdf->Ln();
 
             $this->pdf->SetFont('Times', '', 11);
@@ -361,14 +372,14 @@ class ReportCard extends Controller
             $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(28, 6, "\tClass Average: ", 0, 0, 'L');
             $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(22, 6, $record['term_details']['class_average'].'%', 0, 0, 'L');            
+            $this->pdf->Cell(22, 6, $record['term_details']['class_average'].'%', 0, 0, 'L');
             $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(50, 6, "\tStudents in Class: ", 0, 0, 'R');
             $this->pdf->SetFont('Times', 'B', 11);
             $this->pdf->Cell(15.9, 6, $class_total, 'R', 0, 'L');
             $this->pdf->Ln();
-             
-            $this->pdf->SetFont('Times', '', 11);            
+
+            $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(31, 6, "\tSessions Absent: ", 'LB', 0, 'R');
             $this->pdf->SetFont('Times', 'B', 11);
             $this->pdf->Cell(49, 6, $record['term_details']['sessions_absent'], 'B', 0, 'L');
@@ -379,20 +390,20 @@ class ReportCard extends Controller
             $this->pdf->SetFont('Times', '', 11);
             $this->pdf->Cell(50, 6, "\tTotal Sessions: ", 'B', 0, 'R');
             $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(15.9, 6, $record['term_details']['total_sessions'], 'RB', 0, 'L');           
-            $this->pdf->Ln(8); 
+            $this->pdf->Cell(15.9, 6, $record['term_details']['total_sessions'], 'RB', 0, 'L');
+            $this->pdf->Ln(8);
 
             $this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
             //$this->pdf->SetDrawColor($primaryRed, $primaryGreen, $primaryBlue);
             //$this->pdf->SetDrawColor(219, 219, 219);
-            
+
             $this->pdf->SetWidths(array(45, 30, 15, 15, 90.9));
             $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C'));
             $this->pdf->SetBorders(array('TL',  1, 'TL', 'TLR', 'TR' ));
             $this->pdf->SetFont('Times', 'B', 9);
-            $this->pdf->Row(array("", "MARKS", "Highest", "",  ""), false);  
+            $this->pdf->Row(array("", "MARKS", "Highest", "",  ""), false);
 
-            $this->pdf->SetWidths(array(45, 15, 15, 15, 15, 90.9));        
+            $this->pdf->SetWidths(array(45, 15, 15, 15, 15, 90.9));
             $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'C'));
             $this->pdf->SetBorders(array('L', 'LR', 'LR', 'LR', 'LR', 'R' ));
             $this->pdf->SetFont('Times', 'B', 9);
@@ -402,22 +413,22 @@ class ReportCard extends Controller
             else{
                 $this->pdf->Row(array("Subject", "Term\n %", "Exam %", "Exam Mark", "Conduct", "Subject Teacher Comment"), false);
             }
-            
+
             $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'L', 'L'));
             $this->pdf->SetBorders(array(1, 1, 1, 1, 1, 1, 1 ));
             $this->pdf->SetFont('Times', '', 9);
             $this->pdf->SetFillColor(255, 255, 255);
-            
+
             $this->pdf->SetFillColor(51, 51, 255);
             $subjectRecords = $record['marks'];
             foreach($subjectRecords as $subjectRecord){
-                if(sizeof($subjectRecord) != 0){                   
+                if(sizeof($subjectRecord) != 0){
                     $this->pdf->Row(array(
-                        $subjectRecord['subject'], 
+                        $subjectRecord['subject'],
                         $subjectRecord['course_mark'],
                         $subjectRecord['exam_mark'],
                         $subjectRecord['highest_mark'],
-                        $subjectRecord['conduct'],                        
+                        $subjectRecord['conduct'],
                         $subjectRecord['comment']."\n\t",
                         $subjectRecord['teacher']
                     ), false);
@@ -434,20 +445,20 @@ class ReportCard extends Controller
                         ' '
                     ), false);
                 }
-            }            
+            }
 
             $this->pdf->Ln(2);
-            //$this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);   
+            //$this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
             $this->pdf->SetFont('Times','B','10');
             $this->pdf->Cell(30,8,"A : Excellent", 'TLB', 0, 'C');
             $this->pdf->Cell(30,8,"B : Very Good", 'TB', 0, 'C');
-            $this->pdf->Cell(30,8,"C : Good", 'TB', 0, 'C');            
+            $this->pdf->Cell(30,8,"C : Good", 'TB', 0, 'C');
             $this->pdf->Cell(30,8,"D : Unsatisfactory", 'TB', 0, 'C');
-            $this->pdf->Cell(30,8,"E : Poor", 'TB', 0, 'C');            
+            $this->pdf->Cell(30,8,"E : Poor", 'TB', 0, 'C');
             $this->pdf->Cell(45.9,8,"NW : No Work Submitted", 'TBR', 0, 'C');
 
             $this->pdf->Ln(10);
-            $border = 0;        
+            $border = 0;
             $this->pdf->SetFont('Times','B','10');
             $this->pdf->Cell(98,5,"Form Teacher's Comments:", $border, "J");
             $this->pdf->Cell(25,5,"Form Teachers:", $border);
@@ -456,7 +467,7 @@ class ReportCard extends Controller
             $this->pdf->Ln();
 
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->MultiCell(0, 5, $record['term_details']['form_teacher_comment']."\n\t", 1, "J");        
+            $this->pdf->MultiCell(0, 5, $record['term_details']['form_teacher_comment']."\n\t", 1, "J");
             $this->pdf->SetFont('Times','B','10');
 
             $border = 0;
@@ -469,8 +480,8 @@ class ReportCard extends Controller
             $this->pdf->Ln();
 
             $this->pdf->SetFont('Times','I','10');
-            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");      
-            
+            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");
+
             $border = 0;
             $this->pdf->SetFont('Times','B','10');
             $this->pdf->Cell(25,7,"Vice Principal:", $border,0,"L");
@@ -491,21 +502,21 @@ class ReportCard extends Controller
             // $this->pdf->Cell(65, 8, "Dean's Signature",0, 0,"C");
             // $this->pdf->Cell(65.9, 8, "", 0, 0, "C");
             // $this->pdf->Cell(65, 8, "Form Teacher's Signature", 0, 0, "C");
-                            
+
             $this->pdf->SetY(-20);
-            $this->pdf->SetFont('Times','B','10');      
-            $this->pdf->Cell(0,5,"School Reopens on : ".date_format(date_create($record['term_details']['new_term_beginning']), 'jS M Y'), 0, 0, "C");      
-            
-            $this->pdf->Ln(10);        
-            
+            $this->pdf->SetFont('Times','B','10');
+            $this->pdf->Cell(0,5,"School Reopens on : ".date_format(date_create($record['term_details']['new_term_beginning']), 'jS M Y'), 0, 0, "C");
+
+            $this->pdf->Ln(10);
+
             $this->pdf->SetY(-15);
             $this->pdf->SetFont('Times','I',8);
-            $this->pdf->Cell(0,7,"This is an official document which is not valid without the ".$school." school stamp.",0,0,'C'); 
+            $this->pdf->Cell(0,7,"This is an official document which is not valid without the ".$school." school stamp.",0,0,'C');
             }
             $this->pdf->Output('I', 'ReportCard.pdf');
-        exit;  
-    }    
-    
+        exit;
+    }
+
     private function studentPerformance($student_id, $academic_term_id, $test_id=1, $pass_mark){
         $average = 0;
         $total_subjects = 0;
@@ -525,10 +536,10 @@ class ReportCard extends Controller
                     $total_marks += $student_term_mark->mark;
                     if($mark >= $pass_mark) $subjects_passed++;
                 }
-                
+
                 $total_subjects++;
             }
-            $average = round(($total_marks/$total_subjects),1);            
+            $average = round(($total_marks/$total_subjects),1);
         }
         $average = ($average == 0) ? null : $average;
         $data['average'] = $average;
@@ -559,7 +570,7 @@ class ReportCard extends Controller
                     }
                     $total_subjects++;
                 }
-                $average = round(($total_marks/$total_subjects),1);                
+                $average = round(($total_marks/$total_subjects),1);
             }
             $student_average['student_id'] = $student->student_id;
             $student_average['average'] = $average;
@@ -568,7 +579,7 @@ class ReportCard extends Controller
         }
 
         return $this->sort($class_summaries);
-        
+
     }
 
     private function sort($array){
@@ -600,8 +611,8 @@ class ReportCard extends Controller
         if($recordCount != 0) return round(($totalAverage/$recordCount),1);
         return 0;
     }
-    
-    private function rank($average, $array){        
+
+    private function rank($average, $array){
         foreach($array as $key => $value){
             if($average == $value['average']){
                 return $key+1;
@@ -611,7 +622,7 @@ class ReportCard extends Controller
     }
 
     private function highestMark($subject_id, $form_class_id, $academic_term_id, $test_id)
-    {               
+    {
         return ModelsStudentTermMark::join('student_class_registrations', 'student_term_marks.student_id', 'student_class_registrations.student_id')
         ->select('student_term_marks.mark')
         ->where([
@@ -625,7 +636,7 @@ class ReportCard extends Controller
 
     public function terms(){
         $data = [];
-        
+
         $distinct_academic_terms = ModelsStudentTermMark::select('academic_term_id')
         ->distinct()
         ->orderBy('academic_term_id')
@@ -637,7 +648,7 @@ class ReportCard extends Controller
             $academic_term = AcademicTerm::where('id', $academic_term_id)
             ->first();
             $term = $academic_term->term;
-            $academic_year_id = $academic_term->academic_year_id;            
+            $academic_year_id = $academic_term->academic_year_id;
             $academic_year = AcademicYear::where('id', $academic_year_id)
             ->first();
             $year_start = date_format(date_create($academic_year->start), "Y");
@@ -649,6 +660,6 @@ class ReportCard extends Controller
         }
 
         return $data;
-    }    
-    
+    }
+
 }
