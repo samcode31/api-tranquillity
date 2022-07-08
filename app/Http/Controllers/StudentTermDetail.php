@@ -11,31 +11,31 @@ use Illuminate\Http\Request;
 class StudentTermDetail extends Controller
 {
     public function show($termId, $formClass){
-       
-        $yearId = AcademicTerm::whereId($termId)->first()->academic_year_id;       
+
+        $yearId = AcademicTerm::whereId($termId)->first()->academic_year_id;
         $studentsRegistered = StudentClassRegistration::where([
             ['form_class_id', $formClass],
             ['academic_year_id', $yearId]
         ])->get();
 
         //return $studentsRegistered;
-        //register records for term if doesnt exist       
+        //register records for term if doesnt exist
         foreach($studentsRegistered as $student){
             $studentId = $student->student_id;
-           
+
             $studentTermDetailsExists = ModelsStudentTermDetail::where([
                 ['student_id', $studentId],
                 ['academic_term_id', $termId]
             ])->exists();
-            
+
             if(!$studentTermDetailsExists){
                 ModelsStudentTermDetail::create([
                     'student_id' => $studentId,
                     'academic_term_id' => $termId,
                     'form_class_id' => $formClass
-                ]);                
+                ]);
             }
-            
+
             $studentDeanComments = StudentDeanComment::where([
                 ['student_id', $studentId],
                 ['academic_term_id', $termId]
@@ -47,21 +47,21 @@ class StudentTermDetail extends Controller
                     'academic_term_id' => $termId,
                 ]);
             }
-           
-        }       
+
+        }
 
         $records = ModelsStudentTermDetail::join('students', 'students.id', 'student_term_details.student_id')
         ->join('student_dean_comments', 'student_dean_comments.student_id', 'student_term_details.student_id')
         ->select('student_term_details.*','students.first_name', 'students.last_name', 'students.picture', 'student_dean_comments.comment as dean_comment')
         ->where([
-            ['student_term_details.academic_term_id', $termId],            
-            ['student_dean_comments.academic_term_id', $termId],            
+            ['student_term_details.academic_term_id', $termId],
+            ['student_dean_comments.academic_term_id', $termId],
             ['student_term_details.form_class_id', $formClass]
         ])
         ->orderBy('last_name')
-        ->get();        
+        ->get();
 
-        return $records;       
+        return $records;
     }
 
     public function showAll()
@@ -76,15 +76,15 @@ class StudentTermDetail extends Controller
         ->orderBy('students.last_name')
         ->orderBy('students.first_name')
         ->get();
-       
+
     }
 
     public function store(Request $request)
-    {        
+    {
         $data = [];
         $student_term_detail = ModelsStudentTermDetail::updateOrCreate(
             [
-                'student_id' => $request->student_id,                
+                'student_id' => $request->student_id,
                 'academic_term_id' => $request->academic_term_id,
             ],
             [
@@ -97,18 +97,18 @@ class StudentTermDetail extends Controller
                 "teacher_comment" => $request->teacher_comment,
                 "packages_collected" => $request->packages_collected,
                 "packages_not_collected" => $request->packages_not_collected,
-                "new_term_beginning" => $request->new_term_beginning,
+                // "new_term_beginning" => $request->new_term_beginning,
                 "employee_id" => $request->employee_id
             ]
         );
 
         $student_dean_comment = StudentDeanComment::updateOrCreate(
             [
-                'student_id' => $request->student_id,                
+                'student_id' => $request->student_id,
                 'academic_term_id' => $request->academic_term_id,
             ],
             [
-                'student_id' => $request->student_id,                
+                'student_id' => $request->student_id,
                 'academic_term_id' => $request->academic_term_id,
                 'comment' => $request->dean_comment,
                 'employee_id' => $request->employee_id,
@@ -135,7 +135,7 @@ class StudentTermDetail extends Controller
 
         $academic_term_id = $academic_term->id;
 
-        $student_class_registrations = StudentClassRegistration::where([            
+        $student_class_registrations = StudentClassRegistration::where([
             ['academic_year_id', $academic_year_id]
         ])->get();
 
@@ -169,10 +169,10 @@ class StudentTermDetail extends Controller
                     'academic_term_id' => $academic_term_id
                 ]
             );
-           
+
             if($student_dean_comments->wasRecentlyCreated) $student_dean_comment_inserts++;
             elseif($student_dean_comments->wasChanged()) $student_dean_comment_updates++;
-            
+
         }
 
         $data['student_term_details_inserts'] = $student_term_details_inserts;
@@ -182,6 +182,6 @@ class StudentTermDetail extends Controller
 
         return $data;
 
-        
+
     }
 }
