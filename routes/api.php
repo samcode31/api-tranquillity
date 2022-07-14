@@ -42,6 +42,9 @@ use App\Models\Student;
 use App\Models\StudentTermMark as ModelsStudentTermMark;
 use App\Models\Town;
 use App\Models\User;
+use App\Models\House;
+use App\Models\RegionalCorporation;
+use App\Models\LivingStatus;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -283,3 +286,77 @@ Route::post('/student-file', [FileUploadController::class, 'storeFile']);
 Route::get('/student-picture/{studentId}', [FileUploadController::class, 'getPicture']);
 
 Route::get('/student-population', [StudentController::class, 'currentPopulation']);
+
+/*
+|--------------------------------------------------------------------------
+| Student Registration Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/query-id', [StudentController::class, 'queryId']);
+
+Route::get('/user/{id}', [UserController::class, 'user']);
+
+Route::get('/student/{id}', [StudentController::class, 'index']);
+
+Route::post('/student-registration', [StudentController::class, 'storeRegistration']);
+
+Route::post('/student', [StudentController::class, 'store']);
+
+Route::delete('/student', [StudentController::class, 'delete']);
+
+Route::get('/student-data-personal/{id?}', [StudentController::class, 'showData']);
+
+Route::post('/student-data-personal', [StudentController::class, 'storePersonalData']);
+
+Route::get('/student-data-family/{id?}', [StudentController::class, 'showDataFamily']);
+
+Route::post('/student-data-family', [StudentController::class, 'storeDataFamily']);
+
+Route::get('/student-data-medical/{id?}', [StudentController::class, 'showDataMedical']);
+
+Route::post('/student-data-medical', [StudentController::class, 'storeDataMedical']);
+
+Route::get('/student-data-files/{id}', [StudentController::class, 'showDataFiles']);
+
+Route::post('/student-data-files', [StudentController::class, 'storeDataFiles']);
+
+Route::get('/students', [StudentController::class, 'show']);
+
+Route::get('/registration-data', [StudentController::class, 'data']);
+
+Route::get('/towns', function(){ return Town::all();});
+
+Route::get('/religions', function(){ return Religion::all();});
+
+Route::get('/ethnic-groups', function(){ return EthnicGroup::all();});
+
+Route::get('/living-status', function(){ return LivingStatus::all();});
+
+Route::get('/regional-corporations', function () { return RegionalCorporation::all();});
+
+Route::get('/houses', function () { return House::all();});
+
+Route::get('/upload-file', function () {
+    return view('upload');
+});
+
+Route::post('/store-file', [FileUploadController::class, 'fileStore']);
+
+Route::get('/get-files/{id}', [FileUploadController::class, 'getFiles']);
+
+// Route::get('/registration-form/{id}', [RegistrationFormController::class, 'show']);
+
+Route::get('/registration/{id}', [RegistrationFormController::class, 'record']);
+
+Route::get('/registration-data-spreadsheet', [RegistrationSpreadSheetController::class, 'download']);
+
+Route::post('/users', [UserController::class, 'register']);
+
+Route::get('/student-status', [StudentController::class, 'status']);
+
+
+Route::get('/student-reports/{studentId}', [StudentTermMark::class, 'showReportTerms']);
+
+Route::post('/student-class-registration', [StudentClassRegistration::class, 'store']);
+
