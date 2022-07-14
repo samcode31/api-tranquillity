@@ -378,7 +378,6 @@ class StudentController extends Controller
             ->whereColumn('student_id', 'students.id')
             ->limit(1)
         ])
-        ->where('student_status_id', 1)
         ->orderBy('last_name')
         ->orderBy('first_name')
         ->get();
