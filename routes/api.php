@@ -13,6 +13,10 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegistrationFormController;
 use App\Http\Controllers\RegistrationReportController;
 use App\Http\Controllers\RegistrationSpreadSheetController;
+use App\Http\Controllers\RegistrationStatus;
+use App\Http\Controllers\ReportAgeStatistics;
+use App\Http\Controllers\ReportHealthController;
+use App\Http\Controllers\ReportForeignStudentsController;
 use App\Http\Controllers\ReportCard;
 use App\Http\Controllers\StudentClassRegistration;
 use Illuminate\Http\Request;
@@ -26,6 +30,12 @@ use App\Http\Controllers\Subject;
 use App\Http\Controllers\TeacherLesson;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPermissionsAssignment;
+use App\Http\Controllers\ReportDeviceAndInternet;
+use App\Http\Controllers\ReportEthnicGroup;
+use App\Http\Controllers\ReportReligiousGroup;
+use App\Http\Controllers\ReportSchoolFeeding;
+use App\Http\Controllers\StudentAttendanceController;
+use App\Http\Controllers\MarkSheetSubjectChoice;
 use App\Models\EthnicGroup;
 use App\Models\Religion;
 use App\Models\Student;
@@ -95,7 +105,7 @@ Route::post('/admin-user', [UserController::class, 'registerAdmin']);
 
 Route::middleware('auth:sanctum')->get('/user-auth', function() {
     if(Auth::check()) return "Authorized";
-    else return "Not Authorized";    
+    else return "Not Authorized";
 });
 
 Route::post('/admin-login', [LoginController::class, 'authenticate']);
@@ -122,7 +132,7 @@ Route::post('/register-students', [StudentClassRegistration::class, 'register'])
 
 Route::get('/teacher-lessons/{id}', [TeacherLessonController::class, 'show']);
 
-Route::get('/form-classes-list', [FormClass::class, 'show']); 
+Route::get('/form-classes-list', [FormClass::class, 'show']);
 
 Route::get('/subjects', [Subject::class, 'show']);
 
@@ -156,7 +166,7 @@ Route::post('/delete-teacher-lesson', [TeacherLesson::class, 'delete']);
 
 //-----------------------------Enter Marks -----------------------------------
 
-Route::get('/teacher-lesson-students/{class}/{termId}/{subjCode}', [StudentTermMark::class, 'show']); 
+Route::get('/teacher-lesson-students/{class}/{termId}/{subjCode}', [StudentTermMark::class, 'show']);
 
 Route::get('/preset-comments', [CommentTemplate::class, 'show']);
 
@@ -166,9 +176,9 @@ Route::get('/term-configuration/{formLevel}', [AcademicTerm::class, 'termConfigu
 
 //----------------------------Edit / View Term Reports -----------------------
 
-Route::get('/students-registered/{term}/{class}', [StudentTermDetail::class, 'show']); 
+Route::get('/students-registered/{term}/{class}', [StudentTermDetail::class, 'show']);
 
-Route::get('/student-mark-records/{studentId}/{termId}', [StudentTermMark::class, 'studentRecords']); 
+Route::get('/student-mark-records/{studentId}/{termId}', [StudentTermMark::class, 'studentRecords']);
 
 Route::post('/term-details', [StudentTermDetail::class, 'store']);
 
@@ -182,9 +192,31 @@ Route::get('/mark-sheet/{term_id}/{class_id}', [ClassMarkSheet::class, 'show']);
 
 Route::get('/mark-sheet-terms', [ClassMarkSheet::class, 'terms']);
 
+Route::get('/mark-sheet-subject-choice/{form_class_id}/{student_id?}', [MarkSheetSubjectChoice::class, 'show']);
+
 Route::get('/report-card-terms', [ReportCard::class, 'terms']);
 
 Route::get('/class-list-years', [ClassList::class, 'academicYears']);
+
+Route::get('/registration-status/{formLevel?}', [RegistrationStatus::class, 'show']);
+
+Route::get('/student-contact/{classId}', [RegistrationReportController::class, 'show']);
+
+Route::get('/school-feeding', [ReportSchoolFeeding::class, 'show']);
+
+Route::get('/device-internet/{formLevel?}/{formClass?}', [ReportDeviceAndInternet::class, 'show']);
+
+Route::get('/ethnic-group-statistics', [ReportEthnicGroup::class, 'show']);
+
+Route::get('/religious-group-statistics', [ReportReligiousGroup::class, 'show']);
+
+Route::get('/student-age-statistics/{date?}', [ReportAgeStatistics::class, 'show']);
+
+Route::get('/asr', [ASRController::class, 'show']);
+
+Route::get('/student-health', [ReportHealthController::class, 'show']);
+
+Route::get('/foreign-students', [ReportForeignStudentsController::class, 'show']);
 
 //----------------------------- Students --------------------------------------
 
@@ -241,3 +273,13 @@ Route::delete('/subject', [Subject::class, 'delete']);
 Route::get('/term-registration', [StudentTermDetail::class, 'showAll']);
 
 Route::post('/promote', [StudentClassRegistration::class, 'promote']);
+
+//--------------------- Student Attendance ---------------------------------
+
+Route::post('/student-attendance', [StudentAttendanceController::class, 'store']);
+
+Route::post('/student-file', [FileUploadController::class, 'storeFile']);
+
+Route::get('/student-picture/{studentId}', [FileUploadController::class, 'getPicture']);
+
+Route::get('/student-population', [StudentController::class, 'currentPopulation']);
