@@ -44,11 +44,15 @@ class RegistrationFormController extends Controller
         $studentDataFiles = StudentDataFiles::where('student_id', $id)->first();
         $academic_year_id = AcademicTerm::where('is_current', 1)->first()->academic_year_id;
 
-        $religion_id = $studentDataPersonal->religion_id ? $studentDataPersonal->religion_id : null;
+
+        $religion_id = ($studentDataPersonal && $studentDataPersonal->religion_id) ? $studentDataPersonal->religion_id : null;
 
         $religion = Religion::where('id', $religion_id)->first();
         $religiousGroup = $religion ? $religion->grouping : null;
-        $ethnic_group = EthnicGroup::where('id', $studentDataPersonal->ethnic_group_id)->first();
+        $ethnic_group = null;
+        if($studentDataPersonal){
+            $ethnic_group = EthnicGroup::where('id', $studentDataPersonal->ethnic_group_id)->first();
+        }
         $ethnicGroup = $ethnic_group ? $ethnic_group->grouping : null;
 
         $fatherRecord = new StudentDataFamily();
@@ -73,10 +77,10 @@ class RegistrationFormController extends Controller
             }
         }
 
-        $birthCertificate = $studentDataFiles->file_birth_certificate ?  3 : null;
-        $seaSlip = $studentDataFiles->file_sea_slip ? 3 : null;
-        $immunizationCard = $studentDataFiles->file_immunization_card ? 3 : null;
-        $passportPhoto = $studentDataFiles->file_photo ? 3 : null;
+        $birthCertificate = ($studentDataFiles && $studentDataFiles->file_birth_certificate) ?  3 : null;
+        $seaSlip = ($studentDataFiles && $studentDataFiles->file_sea_slip) ? 3 : null;
+        $immunizationCard = ($studentDataFiles && $studentDataFiles->file_immunization_card) ? 3 : null;
+        $passportPhoto = ($studentDataFiles && $studentDataFiles->file_photo) ? 3 : null;
         $photo = $studentDataFiles->file_photo;
         $photo = $photo ?  public_path('/storage/'.$photo) : null;
 

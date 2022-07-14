@@ -20,8 +20,8 @@ class UserController extends Controller
         $usersCreated = 0;
         foreach($students as $student){
             $id = $student->id;
-            $name = $student->first_name.' '.$student->last_name;            
-            $password = $student->birth_certificate_pin;            
+            $name = $student->first_name.' '.$student->last_name;
+            $password = $student->birth_certificate_pin;
             $user = UserStudent::updateOrCreate(
                 ['student_id' => $id],
                 ['name' => $name, 'student_id' => $id, 'password' => Hash::make($password)]
@@ -48,7 +48,7 @@ class UserController extends Controller
     }
 
     public function userEmployee($name)
-    {        
+    {
         //return UserEmployee::whereName($name)->firstOrFail();
         $userEmployee = UserEmployee::whereName($name);
         if($userEmployee->exists())
@@ -62,11 +62,11 @@ class UserController extends Controller
                 'last_name' => $employee->last_name,
                 'password_reset' => $userEmployee->password_reset
             ];
-        } 
+        }
         return response('Username not found', 404);
     }
 
-    public function resetPassword(Request $request){        
+    public function resetPassword(Request $request){
         $id = $request->input('student_id');
         $student = Student::whereId($id)->first();
         //return $student;
@@ -98,7 +98,7 @@ class UserController extends Controller
         return ["change" => false, "message"=> "Password Not Changed"];
     }
 
-    public function changeResetPassword(Request $request){        
+    public function changeResetPassword(Request $request){
         $resetPassword = $request->input('reset_password');
         $studentID = $request->input('student_id');
         $user = UserStudent::whereStudentId($studentID)->first();
@@ -111,14 +111,14 @@ class UserController extends Controller
     public function employeeChangePassword(Request $request)
     {
         $name = $request->input('name');
-        $password = $request->input('password');        
+        $password = $request->input('password');
         $userEmployee= UserEmployee::whereName($name)->first();
         $userEmployee->password = Hash::make($password);
         $userEmployee->password_reset = 0;
         $userEmployee->save();
         if($userEmployee->wasChanged('password')) return ["change" => true, "message" => "Password Changed Successfully."];
         return ["change" => false, "message"=> "Password Not Changed"];
-        
+
     }
 
     public function resetEmployeePassword(Request $request)
@@ -126,7 +126,7 @@ class UserController extends Controller
         $employee_id = $request->input('employee_id');
         $length = 6;
         $password = substr(str_shuffle(
-            str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) 
+            str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x))
         )),1,$length);
         $userEmployee = UserEmployee::whereEmployeeId($employee_id)->first();
         $userEmployee->password = Hash::make($password);
