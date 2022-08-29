@@ -7,12 +7,12 @@ use App\Models\AcademicYear;
 use App\Models\FormClass;
 use App\Models\Student;
 use App\Models\StudentClassRegistration;
+use App\Models\StudentPicture;
 use App\Models\StudentDataFile;
 use App\Models\StudentFamilyData;
 use App\Models\StudentMedicalData;
 use App\Models\StudentOtherData;
 use App\Models\StudentPersonalData;
-use App\Models\StudentPicture;
 use App\Models\StudentRegistration;
 use App\Models\StudentStatus;
 use App\Models\StudentStatusAssignment;
@@ -24,6 +24,9 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class StudentController extends Controller
 {
@@ -249,6 +252,20 @@ class StudentController extends Controller
         ->orderBy('last_name')
         ->orderBy('first_name')
         ->get();
+
+        foreach($currentStudents as $student){
+            $studentPicture = StudentPicture::where('student_id', $student->student_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+            $pictureFile = null;
+
+            if($studentPicture && File::exists( public_path('storage/pics/'.$studentPicture->file))){
+                $pictureFile = URL::asset('storage/pics/'.$studentPicture->file);
+            }
+
+            $student->picture = $pictureFile;
+        }
 
         return $currentStudents;
     }
