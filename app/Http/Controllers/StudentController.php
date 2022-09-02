@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Exception;
 
 class StudentController extends Controller
 {
@@ -170,7 +171,7 @@ class StudentController extends Controller
         $spreadsheet = $reader->load($file);
         $academicTerm = AcademicTerm::whereIsCurrent(1)->first();
         $academicYearId = $academicTerm->academic_year_id;
-        //return $academicYearId;
+        // return $academicYearId;
         //return $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,2)->getValue();
         $rows = $spreadsheet->getActiveSheet()->getHighestDataRow();
         // return $rows;
@@ -179,34 +180,56 @@ class StudentController extends Controller
         $studentRecords = 0;
         $classRegistrations = 0;
         $userAccounts = 0;
+        $errors = array();
         for($i = 2; $i <= $rows; $i++){
             $id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(1,$i)->getValue();
-            $lastName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue();
-            $firstName = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue();
+            $lastName = trim($spreadsheet->getActiveSheet()->getCellByColumnAndRow(2,$i)->getValue());
+            $firstName = trim($spreadsheet->getActiveSheet()->getCellByColumnAndRow(3,$i)->getValue());
 
             $gender = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(4,$i)->getValue();
             $classId = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(5,$i)->getValue();
             $birthPin = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(6,$i)->getValue();
             $dateOfBirth = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(7,$i)->getValue();
 
-            $student = Student::updateOrCreate(
-                ['id' => $id],
-                [
-                    'id' => $id,
-                    'last_name' => $lastName,
-                    'first_name' => $firstName,
-                    'gender' => $gender[0],
-                    'birth_certificate_pin' => $birthPin,
-                    'date_of_birth' => $dateOfBirth
-                ]
-            );
-            if($student->wasRecentlyCreated){
-                $studentRecords++;
-                $studentClassRegistration = StudentClassRegistration::updateOrCreate(
-                    ['student_id' => $id, 'academic_year_id' => $academicYearId],
-                    ['student_id' => $id, 'form_class_id' => $classId, 'academic_year_id' => $academicYearId]
+            try{
+                $student = Student::updateOrCreate(
+                    ['id' => $id],
+                    [
+                        'last_name' => mb_convert_encoding(ucwords(strtolower($lastName)), 'UTF-8', 'UTF-8'),
+                        'first_name' => mb_convert_encoding(ucwords(strtolower($firstName)), 'UTF-8', 'UTF-8'),
+                        'gender' => $gender,
+                        'birth_certificate_pin' => $birthPin,
+                        'date_of_birth' => $dateOfBirth,
+                        'sea_number' => $birthPin,
+                    ]
                 );
-                if($studentClassRegistration->wasRecentlyCreated) $classRegistrations++;
+            } catch (Exception $e){
+                $errorMsg = array();
+                $errorMsg['id'] = $id;
+                $errorMsg['error'] = $e;
+                $errors[] = $errorMsg;
+            }
+            
+
+            StudentPersonalData::firstOrCreate(
+                ['student_id' => $id]
+            );
+
+            StudentMedicalData::firstOrCreate(
+                ['student_id' => $id]
+            );
+
+            StudentDataFile::firstOrCreate(
+                ['student_id' => $id]
+            );
+
+            $studentClassRegistration = StudentClassRegistration::updateOrCreate(
+                ['student_id' => $id, 'academic_year_id' => $academicYearId],
+                ['student_id' => $id, 'form_class_id' => $classId, 'academic_year_id' => $academicYearId]
+            );
+
+            if($studentClassRegistration->exists()){
+                $classRegistrations++;
             }
 
             $user = UserStudent::updateOrCreate(
@@ -230,6 +253,7 @@ class StudentController extends Controller
         $records['Students'] = $studentRecords;
         $records['ClassRegistration'] = $classRegistrations;
         $records['UserAccounts'] = $userAccounts;
+        $records['errors'] = $errors;
         return $records;
     }
 
