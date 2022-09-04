@@ -36,6 +36,8 @@ use App\Http\Controllers\ReportReligiousGroup;
 use App\Http\Controllers\ReportSchoolFeeding;
 use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\MarkSheetSubjectChoice;
+use App\Http\Controllers\SixthFormApplication;
+use App\Http\Controllers\SubjectController;
 use App\Models\EthnicGroup;
 use App\Models\Religion;
 use App\Models\Student;
@@ -359,4 +361,100 @@ Route::get('/student-status', [StudentController::class, 'status']);
 Route::get('/student-reports/{studentId}', [StudentTermMark::class, 'showReportTerms']);
 
 Route::post('/student-class-registration', [StudentClassRegistration::class, 'store']);
+
+/*
+|--------------------------------------------------------------------------
+| Sixth Form Application Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/sixth-form-application', [SixthFormApplication::class, 'store']);
+
+Route::post('/sixth-form-application-grade', [SixthFormApplication::class, 'storeGrade']);
+
+Route::post(
+    '/sixth-form-application-subject-choice', 
+    [SixthFormApplication::class, 'storeSubjectChoice']
+);
+
+Route::get('/sixth-form-application/{applicationId}/{year}', [SixthFormApplication::class, 'show']);
+
+Route::get(
+    '/sixth-form-application-grades/{applicationId}/{year}', 
+    [SixthFormApplication::class, 'showGrades']
+);
+
+Route::get(
+    '/sixth-form-application-subject-choices/{applicationId}/{year}',
+    [SixthFormApplication::class, 'showSubjectChoices']
+);
+
+Route::get('/sixth-form-application-subject-lines', [SixthFormApplication::class, 'showSubjectLines']);
+
+Route::get('/csec-subjects', [SubjectController::class, 'showCSECSubjects']);
+
+Route::get(
+    '/sixth-form-application-form/{applicationId}/{year}', 
+    [SixthFormApplication::class, 'applicationForm']
+);
+
+Route::get(
+    '/sixth-form-application-check/{applicationId}/{birthPin}',
+    [SixthFormApplication::class, 'checkApplication'] 
+);
+
+Route::get(
+    '/sixth-form-applications',
+    [SixthFormApplication::class, 'showAll']
+);
+
+Route::delete(
+    '/sixth-form-application',
+    [SixthFormApplication::class, 'delete']
+);
+
+Route::get(
+    '/sixth-form-application-instructions',
+    [SixthFormApplication::class, 'instructions']
+);
+
+Route::get(
+    '/sixth-form-application-accepted-pdf/{year}',
+    [SixthFormApplication::class, 'acceptedPDF']
+);
+
+Route::get(
+    '/sixth-form-application-accepted-excel/{year}',
+    [SixthFormApplication::class, 'acceptedSpreadsheet']
+);
+
+Route::post(
+    '/sixth-form-application-store-file',
+    [FileUploadController::class, 'storeSixthFormApplicationFile']
+);
+
+Route::get(
+    '/sixth-form-application-get-files/{applicationId}/{year}',
+    [FileUploadController::class, 'getSixthFormApplicationFiles']
+);
+
+Route::post(
+    '/sixth-form-application-lock-status',
+    [SixthFormApplication::class, 'applicationsLock']
+);
+
+Route::get(
+    '/sixth-form-application-lock-status/{year?}',
+    [SixthFormApplication::class, 'applicationsLockStatus']
+);
+
+Route::get(
+    '/sixth-form-application-periods',
+    [SixthFormApplication::class, 'applicationPeriods']
+);
+
+Route::get(
+    '/sixth-form-application-current-period',
+    [SixthFormApplication::class, 'currentPeriod']
+);
 
