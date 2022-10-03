@@ -337,7 +337,7 @@ class StudentController extends Controller
             ['student_id', $request->student_id]
         ])
         ->first();
-        $student_class_registration->delete();
+        if($student_class_registration) $student_class_registration->delete();
 
         if($student_class_registration->trashed()){
             $data['student_class_registration'] = $student_class_registration;
