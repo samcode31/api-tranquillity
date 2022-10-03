@@ -82,8 +82,6 @@ Route::get('/student-record/{id}', [StudentController::class, 'index']);
 
 Route::post('/student', [StudentController::class, 'store']);
 
-Route::get('/students', [StudentController::class, 'retrieve']);
-
 Route::get('/registration-data', [StudentController::class, 'data']);
 
 Route::get('/towns', function(){ return Town::all();});
@@ -322,6 +320,8 @@ Route::post('/student-data-medical', [StudentController::class, 'storeDataMedica
 Route::get('/student-data-files/{id}', [StudentController::class, 'showDataFiles']);
 
 Route::post('/student-data-files', [StudentController::class, 'storeDataFiles']);
+
+Route::get('/student-data-house/{id?}', [StudentController::class, 'showDataHouse']);
 
 Route::get('/students', [StudentController::class, 'show']);
 

@@ -16,6 +16,8 @@ class Student extends Model
 
     protected $dates = ['deleted_at'];
 
+    public $incrementing = false;
+
     public function UserStudent()
     {
         return $this->belongsTo('App\UserStudent');

@@ -11,6 +11,8 @@ use App\Models\StudentPersonalData as StudentDataPersonal;
 use App\Models\StudentFamilyData as StudentDataFamily;
 use App\Models\StudentMedicalData as StudentDataMedical;
 use App\Models\StudentDataFile as StudentDataFiles;
+use App\Models\StudentPicture;
+use App\Models\StudentHouseAssignment;
 use App\Models\AcademicTerm;
 use App\Models\StudentClassRegistration;
 use Codedge\Fpdf\Fpdf\Fpdf;
@@ -42,6 +44,13 @@ class RegistrationFormController extends Controller
         $studentDataFamily = StudentDataFamily::where('student_id', $id)->get();
         $studentDataMedical = StudentDataMedical::where('student_id', $id)->first();
         $studentDataFiles = StudentDataFiles::where('student_id', $id)->first();
+        $studentPicture = StudentPicture::where('student_id', $id)->first();
+        $studentHouse = StudentHouseAssignment::join(
+            'houses',
+            'student_house_assignments.house_id',
+            'houses.id'
+        )
+        ->where('student_id', $id)->first();
         $academic_year_id = AcademicTerm::where('is_current', 1)->first()->academic_year_id;
 
 
@@ -54,6 +63,8 @@ class RegistrationFormController extends Controller
             $ethnic_group = EthnicGroup::where('id', $studentDataPersonal->ethnic_group_id)->first();
         }
         $ethnicGroup = $ethnic_group ? $ethnic_group->grouping : null;
+
+        $houseAssignment = $studentHouse ? $studentHouse->name : null;
 
         $fatherRecord = new StudentDataFamily();
         $motherRecord = new StudentDataFamily();
@@ -81,8 +92,8 @@ class RegistrationFormController extends Controller
         $seaSlip = ($studentDataFiles && $studentDataFiles->file_sea_slip) ? 3 : null;
         $immunizationCard = ($studentDataFiles && $studentDataFiles->file_immunization_card) ? 3 : null;
         $passportPhoto = ($studentDataFiles && $studentDataFiles->file_photo) ? 3 : null;
-        $photo = $studentDataFiles->file_photo;
-        $photo = $photo ?  public_path('/storage/'.$photo) : null;
+        $photo = $studentPicture->file;
+        $photo = $photo ?  public_path('/storage/pics/'.$photo) : null;
 
 
 
@@ -120,7 +131,7 @@ class RegistrationFormController extends Controller
 
         $this->fpdf->SetFont('Times', 'B', '18');
         $this->fpdf->Image($logo, 10, 8, 30);
-        $this->fpdf->Rect(176, 9, 30, 28);
+        $this->fpdf->Rect(175, 9, 30, 28);
         $this->fpdf->SetFont('Times', '', '9');
         $x = $this->fpdf->GetX();
         $y = $this->fpdf->GetY();
@@ -133,10 +144,10 @@ class RegistrationFormController extends Controller
         $this->fpdf->SetTextColor(0);
         $this->fpdf->SetXY($x, $y);
         if($photo && $ext != 'pdf' && ($ext == 'jpeg' || $ext == 'png' || $ext = 'jpg' )){
-            $this->fpdf->Image($photo, 181, 6, 25);
+            $this->fpdf->Image($photo, 175, 6, 30);
         }
 
-        // $this->fpdf->Cell(20, 6, , 0, 0, 'C');
+        
 
         $this->fpdf->SetFillColor(255, 255, 255);
         $this->fpdf->Rect(181, 0, 25, 8, 'F');
@@ -147,14 +158,20 @@ class RegistrationFormController extends Controller
         $this->fpdf->MultiCell(0, 6, strtoupper($school), $border, 'C');
         $this->fpdf->SetTextColor(0);
         $this->fpdf->SetFont('Times', 'I', 9);
-        $this->fpdf->MultiCell(0, 5, $address, $border, 'C' );
-        $this->fpdf->MultiCell(0, 5, $address_line_2, $border, 'C' );
+        $this->fpdf->Cell(45, 5, "", $border);
+        $x=$this->fpdf->GetX();
+        $y=$this->fpdf->GetY();
+        $this->fpdf->MultiCell(110, 4, $address, $border, 'C' );
+        $this->fpdf->SetXY($x,$y);
+        $this->fpdf->Cell(0, 5, "", $border);
+        // $this->fpdf->MultiCell(100, 5, $address_line_2, $border, 'C' );
         //$this->fpdf->Line(10, 30, 206, 30);
         $this->fpdf->SetFont('Times', 'B', '14');
-        $this->fpdf->Ln(8);
+        $this->fpdf->Ln(12);
 
         $this->fpdf->MultiCell(0, 5, 'STUDENT REGISTRATION FORM', $border, 'C' );
         $this->fpdf->Ln();
+
 
         $x = $this->fpdf->GetX();
         $y = $this->fpdf->GetY() - 3;
@@ -203,7 +220,7 @@ class RegistrationFormController extends Controller
         $this->fpdf->Cell(5, 6, '', 0, 0, 'L');
         $this->fpdf->Cell(25, 6, 'House', 0, 0, 'L');
         $this->fpdf->Cell(5, 6, '', 0, 0, 'L');
-        $this->fpdf->Cell(30, 6, $house, $cellBorder, 0, 'L');
+        $this->fpdf->Cell(30, 6, $houseAssignment, $cellBorder, 0, 'C');
         $this->fpdf->Cell(55, 6, '', 0, 0, 'L');
         $this->fpdf->Cell(60, 6, 'Copy of Immunization Card', 0, 0, 'R');
         $this->fpdf->Cell(5, 6, '', 0, 0, 'L');

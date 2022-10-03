@@ -17,6 +17,7 @@ use App\Models\StudentRegistration;
 use App\Models\StudentStatus;
 use App\Models\StudentStatusAssignment;
 use App\Models\UserStudent;
+use App\Models\StudentHouseAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -62,14 +63,18 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $academicTerm = AcademicTerm::whereIsCurrent(1)->first();
-        $academicYearId = $academicTerm->academic_year_id;
-        $id = $request->input('student_id');
-        $classId = $request->input('form_class_id');
-        $added = 0;
-        $registered = 0;
-        $userAccount = 0;
 
-        if($request->student_id == "" || $request->student_id == null){
+        $academicYearId = $academicTerm ? $academicTerm->academic_year_id : null;
+
+        $id = $request->input('id');
+        $classId = $request->input('form_class_id');
+
+        if($request->input('student_id')){
+            $id = $request->input('student_id');
+        }
+
+        if(!$id){
+            //new student without id
             $form_level = FormClass::whereId($request->form_class_id)
             ->first()
             ->form_level;
@@ -79,10 +84,9 @@ class StudentController extends Controller
             //return 'Last ID: '.$max.' New ID: '.$id;
         }
 
-        $studentRecord = Student::updateOrCreate(
+        $student = Student::updateOrCreate(
             ['id' => $id],
             [
-                'id' => $id,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'gender' => $request->gender,
@@ -91,48 +95,64 @@ class StudentController extends Controller
             ]
         );
 
-        if($studentRecord->exists()){
-            $added++;
-            //$dateOfBirth = date_format(date_create($request->input('date_of_birth')), 'Ymd');
-            $studentClassRegistration = StudentClassRegistration::updateOrCreate(
-                ['student_id' => $id, 'academic_year_id' => $academicYearId],
-                ['student_id' => $id, 'form_class_id' => $classId, 'academic_year_id' => $academicYearId]
-            );
-            if($studentClassRegistration->exists()) $registered++;
+        $studentPicture = StudentPicture::where('student_id', $student->id)
+        ->orderBy('created_at', 'desc')
+        ->first();
 
-            $birthPin = $request->input('birth_certificate_pin');
+        $pictureFile = null;
 
-            $user = UserStudent::updateOrCreate(
-                [
-                    'student_id' => $id
-                ],
-                [
-                    'student_id'=> $id,
-                    'name' => $request->input('first_name').' '.$request->input('last_name'),
-                    'password_reset'=> 0,
-                    'password' => Hash::make($birthPin),
-                ]
-            );
-
-
-            if($user->exists()){
-                $userAccount++;
-            }
+        if($studentPicture && File::exists( public_path('storage/pics/'.$studentPicture->file))){
+            $pictureFile = URL::asset('storage/pics/'.$studentPicture->file);
         }
 
-        $data['Students Added'] = $studentRecord;
-        $data['Class Registered'] = $studentClassRegistration;
-        $data['User Account'] = $user;
+        $student->picture = $pictureFile;
+
+        $data['student'] = $student;
+
+        $data['studentDataPersonal'] = StudentPersonalData::firstOrCreate(
+            ['student_id' => $id]
+        );
+
+        $data['studentDataMedical'] = StudentMedicalData::firstOrCreate(
+            ['student_id' => $id]
+        );
+
+        $data['studentDataFile'] = StudentDataFile::firstOrCreate(
+            ['student_id' => $id]
+        );
+
+        if($request->filled('house_id')){
+            StudentHouseAssignment::updateOrCreate(
+                ['student_id' => $id],
+                ['house_id'=> $request->input('house_id')]
+            );
+        }
+
+        $studentClassRegistration = StudentClassRegistration::updateOrCreate(
+            ['student_id' => $id, 'academic_year_id' => $academicYearId],
+            ['form_class_id' => $classId, ]
+        );
+
+
+        $birthPin = $request->input('birth_certificate_pin');
+
+        $user = UserStudent::updateOrCreate(
+            [
+                'student_id' => $id
+            ],
+            [
+                'name' => $request->input('first_name').' '.$request->input('last_name'),
+                'password_reset'=> 0,
+                'password' => Hash::make($birthPin),
+            ]
+        );
+
+       
+        $data['student'] = $student;
+        $data['classRegistration'] = $studentClassRegistration;
+        $data['user'] = $user;
 
         return $data;
-
-    }
-
-    public function retrieve()
-    {
-        return Student::select('id', 'first_name', 'last_name', 'class_id', 'birth_certificate_no', 'date_of_birth', 'updated_at')
-        ->where('id','!=', 20000)
-        ->get();
     }
 
     public function data()
@@ -262,7 +282,11 @@ class StudentController extends Controller
         $academicTerm = AcademicTerm::whereIsCurrent(1)->first();
         $academic_year_id = $academicTerm->academic_year_id;
         //$studentsRegistered = StudentClassRegistration::where('academic_year_id', $academic_year_id)->get();
-        $currentStudents = Student::join('student_class_registrations', 'students.id', 'student_class_registrations.student_id')
+        $currentStudents = Student::join(
+            'student_class_registrations', 
+            'students.id', 
+            'student_class_registrations.student_id'
+        )
         ->select(
             'student_class_registrations.student_id',
             'students.first_name',
@@ -289,6 +313,14 @@ class StudentController extends Controller
             }
 
             $student->picture = $pictureFile;
+
+            $studentHouse = StudentHouseAssignment::where('student_id', $student->student_id)
+            ->first();
+
+            $student->house_id = null;
+
+            if($studentHouse)
+            $student->house_id = $studentHouse->house_id;
         }
 
         return $currentStudents;
@@ -403,6 +435,11 @@ class StudentController extends Controller
         );
 
         return $studentOtherData;
+    }
+
+    public function showDataHouse ($id = null)
+    {
+        return StudentHouseAssignment::where('student_id', $id)->first();
     }
 
     public function queryId ()
