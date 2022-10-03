@@ -339,7 +339,7 @@ class StudentController extends Controller
         ->first();
         if($student_class_registration) $student_class_registration->delete();
 
-        if($student_class_registration->trashed()){
+        if($student_class_registration && $student_class_registration->trashed()){
             $data['student_class_registration'] = $student_class_registration;
             //return 'class registration deleted';
             $student = Student::whereId($request->student_id)->first();
