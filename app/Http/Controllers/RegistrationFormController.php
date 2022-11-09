@@ -93,7 +93,7 @@ class RegistrationFormController extends Controller
         $immunizationCard = ($studentDataFiles && $studentDataFiles->file_immunization_card) ? 3 : null;
         $passportPhoto = ($studentDataFiles && $studentDataFiles->file_photo) ? 3 : null;
         $photo = $studentPicture->file;
-        $photo = $photo ?  public_path('/storage/pics/'.$photo) : null;
+        $photo = $photo && file_exists(public_path('/storage/pics/'.$photo)) ?  public_path('/storage/pics/'.$photo) : null;
 
 
 
