@@ -96,7 +96,7 @@ Route::get('/upload-file', function () {
 
 Route::post('/store-file', [FileUploadController::class, 'fileStore']);
 
-Route::get('/registration-form/{id}', [RegistrationFormController::class, 'createPDF']);
+Route::get('/registration-form/{id?}', [RegistrationFormController::class, 'createPDF']);
 
 Route::get('/registration/{id}', [RegistrationFormController::class, 'record']);
 

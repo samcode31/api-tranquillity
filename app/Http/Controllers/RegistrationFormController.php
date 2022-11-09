@@ -27,7 +27,7 @@ class RegistrationFormController extends Controller
     }
 
 
-    public function createPDF($id)
+    public function createPDF($id = null)
     {
         $record = Student::whereId($id)->first();
         $school = config('app.school_name');
@@ -40,17 +40,24 @@ class RegistrationFormController extends Controller
         " I will make every effort to have my child uphold the code of conduct and rules of the school";
 
         $student = Student::where('id', $id)->first();
+        if(!$student) $student = new Student;
         $studentDataPersonal = StudentDataPersonal::where('student_id', $id)->first();
+        if(!$studentDataPersonal) $studentDataPersonal = new StudentDataPersonal;
         $studentDataFamily = StudentDataFamily::where('student_id', $id)->get();
+        if(!$studentDataFamily) $studentDataFamily = new StudentDataFamily;
         $studentDataMedical = StudentDataMedical::where('student_id', $id)->first();
+        if(!$studentDataMedical) $studentDataMedical = new StudentDataMedical;
         $studentDataFiles = StudentDataFiles::where('student_id', $id)->first();
+        if(!$studentDataFiles) $studentDataFiles = new StudentDataFiles;
         $studentPicture = StudentPicture::where('student_id', $id)->first();
+        if(!$studentPicture) $studentPicture = new StudentPicture;
         $studentHouse = StudentHouseAssignment::join(
             'houses',
             'student_house_assignments.house_id',
             'houses.id'
         )
         ->where('student_id', $id)->first();
+        if(!$studentHouse) $studentHouse = new StudentHouseAssignment;
         $academic_year_id = AcademicTerm::where('is_current', 1)->first()->academic_year_id;
 
 
@@ -92,13 +99,13 @@ class RegistrationFormController extends Controller
         $seaSlip = ($studentDataFiles && $studentDataFiles->file_sea_slip) ? 3 : null;
         $immunizationCard = ($studentDataFiles && $studentDataFiles->file_immunization_card) ? 3 : null;
         $passportPhoto = ($studentDataFiles && $studentDataFiles->file_photo) ? 3 : null;
-        $photo = $studentPicture->file;
+        $photo = $studentPicture ? $studentPicture->file : null;
         $photo = $photo && file_exists(public_path('/storage/pics/'.$photo)) ?  public_path('/storage/pics/'.$photo) : null;
 
 
 
-        $imigrationPermit = ($studentDataPersonal->immigration_permit == 0) ? "No" : "Yes";
-        $dob = date_format(date_create($student->date_of_birth), 'j M Y');
+        $imigrationPermit = ($studentDataPersonal && $studentDataPersonal->immigration_permit == 0) ? "No" : "Yes";
+        $dob = ($student && $student->date_of_birth) ? date_format(date_create($student->date_of_birth), 'j M Y')  : null;
         $class_id = StudentClassRegistration::where([
             ['student_id', $id],
             ['academic_year_id', $academic_year_id]
@@ -754,7 +761,7 @@ class RegistrationFormController extends Controller
         $this->fpdf->SetFont('Times', '', 10);
         $this->fpdf->Cell(10, 6, '', 0, 0, 'L');
         $this->fpdf->Cell(10, 6, 'No', 0, 0, 'L');
-        $checkNo = ($studentDataPersonal->school_feeding == 0) ? "3" : "";
+        $checkNo = ($studentDataPersonal->school_feeding === 0) ? "3" : "";
         $this->fpdf->SetFont('ZapfDingbats', '', 13);
         $this->fpdf->Cell(6, 6, $checkNo, 1, 0, 'L');
         $this->fpdf->SetFont('Times', '', 10);
@@ -811,7 +818,7 @@ class RegistrationFormController extends Controller
         $this->fpdf->SetFont('Times', '', 10);
         $this->fpdf->Cell(10, 6, '', 0, 0, 'L');
         $this->fpdf->Cell(10, 6, 'No', 0, 0, 'L');
-        $checkNo = ($studentDataPersonal->internet_access == 0) ? "3" : "";
+        $checkNo = ($studentDataPersonal->internet_access === 0) ? "3" : "";
         $this->fpdf->SetFont('ZapfDingbats', '', 13);
         $this->fpdf->Cell(6, 6, $checkNo, 1, 0, 'L');
         $this->fpdf->SetFont('Times', '', 10);
