@@ -38,6 +38,7 @@ use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\MarkSheetSubjectChoice;
 use App\Http\Controllers\SixthFormApplication;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\DbFixesController;
 use App\Models\EthnicGroup;
 use App\Models\Religion;
 use App\Models\Student;
@@ -458,3 +459,14 @@ Route::get(
     [SixthFormApplication::class, 'currentPeriod']
 );
 
+
+/*
+|--------------------------------------------------------------------------
+| DB Fixes  Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::post(
+    '/fix-student-term-details',
+    [DbFixesController::class, 'fixStudentTermDetails']
+);
