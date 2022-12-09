@@ -78,7 +78,8 @@ class StudentController extends Controller
             $form_level = FormClass::whereId($request->form_class_id)
             ->first()
             ->form_level;
-            $max = StudentClassRegistration::where('form_class_id', 'like', $form_level.'%')
+            $max = StudentClassRegistration::withTrashed()
+            ->where('form_class_id', 'like', $form_level.'%')
             ->max('student_id');
             $id = $max + 1;
             //return 'Last ID: '.$max.' New ID: '.$id;
