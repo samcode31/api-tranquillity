@@ -27,12 +27,13 @@ class ReportAgeStatistics extends Controller
         $primaryBlue = config('app.primary_blue');
         $address = config('app.school_address');
         $contact = config('app.school_contact');
-        $formLevels = 5;
+        $formLevels = 6;
+        $col1 = 30; $colOffset = 24.7;
 
         $this->pdf->SetMargins(10, 8);
         $this->pdf->AliasNbPages();
         $this->pdf->SetAutoPageBreak(false);
-        $this->pdf->AddPage('P', 'Letter');
+        $this->pdf->AddPage('L', 'Letter');
 
         $academicTerm = AcademicTerm::where('is_current', 1)
         ->first();
@@ -61,15 +62,16 @@ class ReportAgeStatistics extends Controller
         $border= 1;
         $this->pdf->SetDrawColor(190,190,190);
         $this->pdf->SetFont('Times', 'B', 12);
-        $this->pdf->Cell(39.9, 18, 'Age', $border, 0, 'C' );
-        $this->pdf->Cell(120, 6, 'Form', $border, 0, 'C');
+        $this->pdf->Cell($colOffset, 18, '', 0, 0, 'C' );
+        $this->pdf->Cell($col1, 18, 'Age', $border, 0, 'C' );
+        $this->pdf->Cell(144, 6, 'Form', $border, 0, 'C');
         $y=$this->pdf->GetY();
         $this->pdf->SetFillColor(220,220,220);
         $this->pdf->Cell(36, 18, 'Total', $border, 0, 'C', true);
         $this->pdf->Ln();
 
         $x=$this->pdf->GetX();
-        $this->pdf->SetXY($x+39.9, $y+6);
+        $this->pdf->SetXY($x+$col1+$colOffset, $y+6);
         for($i = 1; $i <= $formLevels; $i++){
             $this->pdf->Cell(24, 6, $i, $border, 0, 'C' );
         }
@@ -77,7 +79,7 @@ class ReportAgeStatistics extends Controller
         $this->pdf->Ln();
 
         $x=$this->pdf->GetX();
-        $this->pdf->SetX($x+39.9);
+        $this->pdf->SetX($x+$col1+$colOffset);
         for($i = 1; $i <= $formLevels; $i++){
             $this->pdf->Cell(12, 6, 'M', $border, 0, 'C' );
             $this->pdf->Cell(12, 6, 'F', $border, 0, 'C' );
@@ -101,8 +103,12 @@ class ReportAgeStatistics extends Controller
 
         foreach($ageGroups as $group){
             $records = $this->data($academicYearId, $date, $group, $group + 1);
+            // $records = $this->data($academicYearId, $date, $group, 19);
+            // return $records;
             $totalMales = 0; $totalFemales = 0;
-            $this->pdf->Cell(39.9, 7, $group.'<'.($group+1).' years', $border, 0, 'C' );
+            $x=$this->pdf->GetX();
+            $this->pdf->SetX($x+$colOffset);
+            $this->pdf->Cell($col1, 7, $group.'<'.($group+1).' years', $border, 0, 'C' );
             foreach($records as $index => $record){
                 $totalMales += $record['M'];
                 $totalFemales += $record['F'];
@@ -127,7 +133,8 @@ class ReportAgeStatistics extends Controller
         }
 
         $this->pdf->SetFont('Times', 'B', 11);
-        $this->pdf->Cell(39.9, 7, 'Total', $border, 0, 'C' );
+        $this->pdf->SetX($x+$colOffset);
+        $this->pdf->Cell($col1, 7, 'Total', $border, 0, 'C' );
         for($i = 1; $i <= $formLevels; $i++){
             $this->pdf->Cell(12, 7, $totalFormMales[$i], $border, 0, 'C', true );
             $this->pdf->Cell(12, 7, $totalFormFemales[$i], $border, 0, 'C', true );
@@ -165,7 +172,7 @@ class ReportAgeStatistics extends Controller
         ->get();
 
         $forms = [];
-        for($i = 1; $i<=5; $i++){
+        for($i = 1; $i<=6; $i++){
             $forms[$i] = 0;
             $forms[$i] = array('M' => 0, 'F' => 0);
         }
