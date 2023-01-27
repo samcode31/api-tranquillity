@@ -18,7 +18,6 @@ class ReportAgeStatistics extends Controller
 
     public function show ($date = null)
     {
-        $date = '2021-11-30';
         date_default_timezone_set('America/Caracas');
         $logo = public_path('/imgs/logo.png');
         $school = strtoupper(config('app.school_name'));
@@ -41,6 +40,8 @@ class ReportAgeStatistics extends Controller
         if($academicTerm){
             $academicYearId = $academicTerm->academic_year_id;
         }
+        $yearStart = $academicYearId ? substr($academicYearId,0,4) : null;
+        $date = $yearStart.'-11-30';
 
         $this->pdf->Image($logo, 10, 6, 23);
         $this->pdf->SetFont('Times', 'B', '15');
@@ -101,8 +102,10 @@ class ReportAgeStatistics extends Controller
             $totalFormFemales[$i] = 0;
         }
 
+        return $this->data($academicYearId, $date, 10);
+
         foreach($ageGroups as $group){
-            $records = $this->data($academicYearId, $date, $group, $group + 1);
+            $records = $this->data($academicYearId, $date, $group);
             // $records = $this->data($academicYearId, $date, $group, 19);
             // return $records;
             $totalMales = 0; $totalFemales = 0;
@@ -154,7 +157,7 @@ class ReportAgeStatistics extends Controller
         exit;
     }
 
-    private function data ($academicYearId, $date, $ageGroupMin, $ageGroupMax)
+    private function data ($academicYearId, $date, $ageGroupMin)
     {
         $date = date_create($date);
         $students = Student::join(
@@ -171,12 +174,14 @@ class ReportAgeStatistics extends Controller
         ->where('academic_year_id', $academicYearId)
         ->get();
 
+        // return $students->count();
+
         $forms = [];
         for($i = 1; $i<=6; $i++){
-            $forms[$i] = 0;
+            // $forms[$i] = 0;
             $forms[$i] = array('M' => 0, 'F' => 0);
         }
-        $ages = [];
+        $ages = array();
         foreach($students as $student)
         {
             $dateOfBirth = $student->date_of_birth;
@@ -185,17 +190,15 @@ class ReportAgeStatistics extends Controller
                 $dateOfBirth = date_create($dateOfBirth);
                 $diff = $date->diff($dateOfBirth);
                 $age = $diff->y;
-
             }
-            if($age != 0 && $age < $ageGroupMax && $age == $ageGroupMin){
-                $ages[] = $age;
-                $formClassRecord = FormClass::where('id',$student->form_class_id)
-                ->first();
-                $formLevel = $formClassRecord->form_level;
-                // $formLevels[] = $formLevel;
-                //$forms[$formLevel] = $forms[$formLevel]++;
+            // if(!in_array($age, $ages))
+            // $ages[] = $age;
+            $formClassRecord = FormClass::where('id',$student->form_class_id)
+            ->first();
+            $formLevel = $formClassRecord->form_level;
 
-
+            if($age != 0 && $age == $ageGroupMin && $age < 19)
+            {
                 if($student->gender == 'M'){
                     $males = $forms[$formLevel]['M'];
                     $males++;
@@ -207,8 +210,23 @@ class ReportAgeStatistics extends Controller
                     $forms[$formLevel]['F'] = $females;
                 }
             }
-        }
 
+            if($age != 0 && $age >= 19)
+            {
+                $ages[] = $age.' '.$student->id.' '.$student->gender.' '.$formLevel;
+                // if($student->gender == 'M'){
+                //     $males = $forms[$formLevel]['M'];
+                //     $males++;
+                //     $forms[$formLevel]['M'] = $males;
+                // }
+                // if($student->gender == 'F') {
+                //     $females = $forms[$formLevel]['F'];
+                //     $females++;
+                //     $forms[$formLevel]['F'] = $females;
+                // }
+            }
+        }
+        $forms['ages'] = $ages;
         return $forms;
     }
 }

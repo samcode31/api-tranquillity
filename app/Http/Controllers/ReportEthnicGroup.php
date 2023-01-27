@@ -68,6 +68,7 @@ class ReportEthnicGroup extends Controller
         $this->pdf->Ln();
 
         $records = $this->data($academicYearId);
+        // return $records;
         $totalStudents = 0;
         $border= 'B';
         $this->pdf->SetDash(0.5, 0.5);

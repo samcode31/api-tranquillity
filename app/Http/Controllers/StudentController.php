@@ -282,6 +282,7 @@ class StudentController extends Controller
     {
         $academicTerm = AcademicTerm::whereIsCurrent(1)->first();
         $academic_year_id = $academicTerm->academic_year_id;
+        $date = date_create();
         //$studentsRegistered = StudentClassRegistration::where('academic_year_id', $academic_year_id)->get();
         $currentStudents = Student::join(
             'student_class_registrations', 
@@ -308,6 +309,16 @@ class StudentController extends Controller
             ->first();
 
             $pictureFile = null;
+
+            $age = null;
+            $dateOfBirth = $student->date_of_birth;
+            if($dateOfBirth){
+                $dateOfBirth = date_create($dateOfBirth);
+                $diff = $date->diff($dateOfBirth);
+                $age = $diff->y;
+            }
+
+            $student->age = $age;
 
             if($studentPicture && File::exists( public_path('storage/pics/'.$studentPicture->file))){
                 $pictureFile = URL::asset('storage/pics/'.$studentPicture->file);
