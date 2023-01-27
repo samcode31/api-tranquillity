@@ -102,7 +102,7 @@ class ReportAgeStatistics extends Controller
             $totalFormFemales[$i] = 0;
         }
 
-        return $this->data($academicYearId, $date, 10);
+        // return $this->data($academicYearId, $date, 10);
 
         foreach($ageGroups as $group){
             $records = $this->data($academicYearId, $date, $group);
@@ -226,7 +226,7 @@ class ReportAgeStatistics extends Controller
                 // }
             }
         }
-        $forms['ages'] = $ages;
+        // $forms['ages'] = $ages;
         return $forms;
     }
 }
