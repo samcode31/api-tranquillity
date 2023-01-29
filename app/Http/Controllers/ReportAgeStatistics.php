@@ -102,7 +102,7 @@ class ReportAgeStatistics extends Controller
             $totalFormFemales[$i] = 0;
         }
 
-        // return $this->data($academicYearId, $date, 10);
+        // return $this->data($academicYearId, $date, 11);
 
         foreach($ageGroups as $group){
             $records = $this->data($academicYearId, $date, $group);
@@ -197,7 +197,7 @@ class ReportAgeStatistics extends Controller
             ->first();
             $formLevel = $formClassRecord->form_level;
 
-            if($age != 0 && $age == $ageGroupMin && $age < 19)
+            if($age != 0 && $age == $ageGroupMin && $ageGroupMin < 19)
             {
                 if($student->gender == 'M'){
                     $males = $forms[$formLevel]['M'];
@@ -211,19 +211,19 @@ class ReportAgeStatistics extends Controller
                 }
             }
 
-            if($age != 0 && $age >= 19)
+            elseif($age != 0 && $ageGroupMin >= 19 && $age >= 19)
             {
                 $ages[] = $age.' '.$student->id.' '.$student->gender.' '.$formLevel;
-                // if($student->gender == 'M'){
-                //     $males = $forms[$formLevel]['M'];
-                //     $males++;
-                //     $forms[$formLevel]['M'] = $males;
-                // }
-                // if($student->gender == 'F') {
-                //     $females = $forms[$formLevel]['F'];
-                //     $females++;
-                //     $forms[$formLevel]['F'] = $females;
-                // }
+                if($student->gender == 'M'){
+                    $males = $forms[$formLevel]['M'];
+                    $males++;
+                    $forms[$formLevel]['M'] = $males;
+                }
+                if($student->gender == 'F') {
+                    $females = $forms[$formLevel]['F'];
+                    $females++;
+                    $forms[$formLevel]['F'] = $females;
+                }
             }
         }
         // $forms['ages'] = $ages;
