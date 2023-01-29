@@ -27,7 +27,7 @@ class ReportAgeStatistics extends Controller
         $address = config('app.school_address');
         $contact = config('app.school_contact');
         $formLevels = 6;
-        $col1 = 30; $colOffset = 24.7;
+        $col1 = 30; $colOffset = 12.7;
 
         $this->pdf->SetMargins(10, 8);
         $this->pdf->AliasNbPages();
@@ -64,8 +64,8 @@ class ReportAgeStatistics extends Controller
         $this->pdf->SetDrawColor(190,190,190);
         $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell($colOffset, 18, '', 0, 0, 'C' );
-        $this->pdf->Cell($col1, 18, 'Age', $border, 0, 'C' );
-        $this->pdf->Cell(144, 6, 'Form', $border, 0, 'C');
+        $this->pdf->Cell($col1, 24, 'Age', $border, 0, 'C' );
+        $this->pdf->Cell(168, 6, 'Form', $border, 0, 'C');
         $y=$this->pdf->GetY();
         $this->pdf->SetFillColor(220,220,220);
         $this->pdf->Cell(36, 18, 'Total', $border, 0, 'C', true);
@@ -74,7 +74,17 @@ class ReportAgeStatistics extends Controller
         $x=$this->pdf->GetX();
         $this->pdf->SetXY($x+$col1+$colOffset, $y+6);
         for($i = 1; $i <= $formLevels; $i++){
-            $this->pdf->Cell(24, 6, $i, $border, 0, 'C' );
+            if($i < $formLevels) $this->pdf->Cell(24, 12, $i, $border, 0, 'C' );
+            else{
+                $x=$this->pdf->GetX();
+                $y=$this->pdf->GetY();
+                $this->pdf->Cell(48, 6, $i, $border, 0, 'C' );
+                $this->pdf->Ln();
+                $this->pdf->SetXY($x,$y+6);
+                $this->pdf->Cell(24, 6, 'Year 1', $border, 0, 'C' );
+                $this->pdf->Cell(24, 6, 'Year 2', $border, 0, 'C' );
+
+            } 
         }
         $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Ln();
@@ -85,6 +95,8 @@ class ReportAgeStatistics extends Controller
             $this->pdf->Cell(12, 6, 'M', $border, 0, 'C' );
             $this->pdf->Cell(12, 6, 'F', $border, 0, 'C' );
         }
+        $this->pdf->Cell(12, 6, 'M', $border, 0, 'C');
+        $this->pdf->Cell(12, 6, 'F', $border, 0, 'C');
         $this->pdf->Cell(12, 6, 'M', $border, 0, 'C', true );
         $this->pdf->Cell(12, 6, 'F', $border, 0, 'C', true );
         $this->pdf->SetFont('Times', '', 9);
@@ -97,12 +109,12 @@ class ReportAgeStatistics extends Controller
         $totalMalePop = 0;
         $totalFemalePop = 0;
 
-        for($i = 1; $i <= $formLevels; $i++){
+        for($i = 1; $i <= $formLevels+1; $i++){
             $totalFormMales[$i] = 0;
             $totalFormFemales[$i] = 0;
         }
 
-        // return $this->data($academicYearId, $date, 11);
+        // return $this->data($academicYearId, $date, 12);
 
         foreach($ageGroups as $group){
             $records = $this->data($academicYearId, $date, $group);
@@ -138,7 +150,7 @@ class ReportAgeStatistics extends Controller
         $this->pdf->SetFont('Times', 'B', 11);
         $this->pdf->SetX($x+$colOffset);
         $this->pdf->Cell($col1, 7, 'Total', $border, 0, 'C' );
-        for($i = 1; $i <= $formLevels; $i++){
+        for($i = 1; $i <= $formLevels+1; $i++){
             $this->pdf->Cell(12, 7, $totalFormMales[$i], $border, 0, 'C', true );
             $this->pdf->Cell(12, 7, $totalFormFemales[$i], $border, 0, 'C', true );
         }
@@ -177,7 +189,7 @@ class ReportAgeStatistics extends Controller
         // return $students->count();
 
         $forms = [];
-        for($i = 1; $i<=6; $i++){
+        for($i = 1; $i<=7; $i++){
             // $forms[$i] = 0;
             $forms[$i] = array('M' => 0, 'F' => 0);
         }
@@ -186,45 +198,57 @@ class ReportAgeStatistics extends Controller
         {
             $dateOfBirth = $student->date_of_birth;
             $age = 0;
+            
             if($dateOfBirth){
                 $dateOfBirth = date_create($dateOfBirth);
                 $diff = $date->diff($dateOfBirth);
                 $age = $diff->y;
             }
-            // if(!in_array($age, $ages))
-            // $ages[] = $age;
+
             $formClassRecord = FormClass::where('id',$student->form_class_id)
             ->first();
             $formLevel = $formClassRecord->form_level;
 
-            if($age != 0 && $age == $ageGroupMin && $ageGroupMin < 19)
+            if(!$age) continue;
+
+            if($age < 19 && $age != $ageGroupMin) continue;
+
+            if($age >= 19 && $ageGroupMin != 19) continue;
+
+            $ages[] = $age;
+
+            if($student->gender == 'M' && $student->form_class_id == '6 Up')
             {
-                if($student->gender == 'M'){
-                    $males = $forms[$formLevel]['M'];
-                    $males++;
-                    $forms[$formLevel]['M'] = $males;
-                }
-                if($student->gender == 'F') {
-                    $females = $forms[$formLevel]['F'];
-                    $females++;
-                    $forms[$formLevel]['F'] = $females;
-                }
+                $males = $forms[7]['M'];
+                $males++;
+                $forms[7]['M'] = $males;
+                continue;
             }
 
-            elseif($age != 0 && $ageGroupMin >= 19 && $age >= 19)
+            if($student->gender == 'F' && $student->form_class_id == '6 Up')
             {
-                $ages[] = $age.' '.$student->id.' '.$student->gender.' '.$formLevel;
-                if($student->gender == 'M'){
-                    $males = $forms[$formLevel]['M'];
-                    $males++;
-                    $forms[$formLevel]['M'] = $males;
-                }
-                if($student->gender == 'F') {
-                    $females = $forms[$formLevel]['F'];
-                    $females++;
-                    $forms[$formLevel]['F'] = $females;
-                }
+                $females = $forms[7]['F'];
+                $females++;
+                $forms[7]['F'] = $females;
+                continue;
             }
+
+            if($student->gender == 'M' && $student->form_class_id != '6 Up') 
+            {
+                $males = $forms[$formLevel]['M'];
+                $males++;
+                $forms[$formLevel]['M'] = $males;
+                continue;
+            }
+
+            if($student->gender == 'F' && $student->form_class_id != '6 Up') 
+            {
+                $females = $forms[$formLevel]['F'];
+                $females++;
+                $forms[$formLevel]['F'] = $females;
+                continue;
+            }
+
         }
         // $forms['ages'] = $ages;
         return $forms;
