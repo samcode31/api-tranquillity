@@ -56,7 +56,7 @@ class ReportAgeStatistics extends Controller
         $this->pdf->SetFont('Times', 'B', 14);
         $this->pdf->MultiCell(0,6, substr($academicYearId,0,4).'-'.substr($academicYearId,4), 0, 'C');
         $this->pdf->Ln(3);
-        $this->pdf->MultiCell(0,6, 'Enrollment Age Statistics', 0, 'C');
+        $this->pdf->MultiCell(0,6, 'Enrollment by Form, Age and Sex', 0, 'C');
 
         $this->pdf->Ln();
 
