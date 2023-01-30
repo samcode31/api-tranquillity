@@ -39,6 +39,7 @@ use App\Http\Controllers\MarkSheetSubjectChoice;
 use App\Http\Controllers\SixthFormApplication;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\DbFixesController;
+use App\Http\Controllers\ReportSubjectEnrollment;
 use App\Models\EthnicGroup;
 use App\Models\Religion;
 use App\Models\Student;
@@ -215,6 +216,8 @@ Route::get('/ethnic-group-statistics', [ReportEthnicGroup::class, 'show']);
 Route::get('/religious-group-statistics', [ReportReligiousGroup::class, 'show']);
 
 Route::get('/student-age-statistics/{date?}', [ReportAgeStatistics::class, 'show']);
+
+Route::get('/student-subject-enrollment', [ReportSubjectEnrollment::class, 'show']);
 
 Route::get('/asr', [ASRController::class, 'show']);
 

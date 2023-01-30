@@ -136,6 +136,7 @@ class ReportEthnicGroup extends Controller
                 ['gender', 'M'],
                 ['academic_year_id', $academicYearId]
             ])
+            ->whereNull('students.deleted_at')
             ->get()
             ->count();
 
@@ -157,6 +158,7 @@ class ReportEthnicGroup extends Controller
                 ['gender', 'F'],
                 ['academic_year_id', $academicYearId]
             ])
+            ->whereNull('students.deleted_at')
             ->get()
             ->count();
 
