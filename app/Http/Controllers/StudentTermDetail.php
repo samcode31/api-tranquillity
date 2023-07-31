@@ -18,7 +18,6 @@ class StudentTermDetail extends Controller
             ['academic_year_id', $yearId]
         ])->get();
 
-        //return $studentsRegistered;
         //register records for term if doesnt exist
         foreach($studentsRegistered as $student){
             $studentId = $student->student_id;

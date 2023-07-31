@@ -259,7 +259,7 @@ class ClassMarkSheet extends Controller
             if($key%2==0) $this->pdf->SetFillColor(239,240,242);
             else $this->pdf->SetFillColor(255,255,255);
             $this->pdf->Cell(8,7,$key+1,'TLB','0','C',true);
-            $this->pdf->Cell(54,7,$record['name'],'TLB',0,'L',true);
+            $this->pdf->Cell(54,7,utf8_decode($record['name']),'TLB',0,'L',true);
             $term_marks = $record['term_marks'];
             foreach($term_marks as $mark){
                 $this->pdf->Cell(8,7,$mark['course_mark'],'TLB',0,'C',true);

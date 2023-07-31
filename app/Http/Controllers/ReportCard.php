@@ -346,7 +346,7 @@ class ReportCard extends Controller
             $this->pdf->Ln(3);
 
             $this->pdf->SetFont('Times', 'UBI', 16);
-            $this->pdf->MultiCell(0,6, $record['student'].' ', 0, 'C');
+            $this->pdf->MultiCell(0,6, utf8_decode($record['student']).' ', 0, 'C');
             $this->pdf->Ln(3);
 
             $this->pdf->SetDrawColor(219, 219, 219);

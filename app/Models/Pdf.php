@@ -242,5 +242,22 @@ class Pdf extends Fpdf
         }
     }
 
+    public function setFont($family, $style = '', $size=0)
+    {
+        $fontPath = storage_path('fonts\DejaVuSans.php');
+
+        if(is_null($family))
+        {
+            $family = 'Arial';
+        }
+
+        parent::setFont($family, $style, $size);
+
+        if(strtolower($family) === 'arial') {
+            $this->AddFont('DejaVuSans', '', 'DejaVuSans.php');
+            $this->SetFont('DejaVuSans', $style, $size);
+        }
+    }
+
 
 }
