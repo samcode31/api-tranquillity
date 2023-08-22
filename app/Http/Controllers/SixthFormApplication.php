@@ -56,6 +56,11 @@ class SixthFormApplication extends Controller
     public function showAll () 
     {
         $data = [];
+
+        $applicationPeriod = SixthFormApplicationPeriod::where('current_year', 1)
+        ->first();
+        $applicationYear = $applicationPeriod ? $applicationPeriod->year : null;
+
         $applications = ModelsSixthFormApplication::select(
             'first_name',
             'last_name',
@@ -71,7 +76,9 @@ class SixthFormApplication extends Controller
             'transfer_form',
             'picture',
             'recommendation_1'
-        )->get();
+        )
+        ->where('year', $applicationYear)   
+        ->get();
 
         foreach($applications as $application){
             
@@ -334,34 +341,61 @@ class SixthFormApplication extends Controller
         $this->pdf->Ln();
         $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Cell(12, 6, 'Name:', $border1, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell(183.9, 6, $studentData->first_name.' '.$studentData->last_name, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Ln(8);
 
         $this->pdf->Cell(15, 6, 'Address:', $border1, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell(180.9, 6, $studentData->address, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Ln(8);
 
         $this->pdf->Cell(28, 6, 'Mobile Number:', $border1, 0, 'L');
         $phoneMobile = $studentData->phone_mobile ? $this->formatNumber($studentData->phone_mobile) : null;
+        $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell(59, 6, $phoneMobile, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Cell(26, 6, 'Email Address:', $border1, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell(82.9, 6, $studentData->email, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Ln(8);
 
         $this->pdf->Cell(48, 6, 'Birth Certificate Pin Number:', $border1, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell(49.9, 6, $studentData->birth_certificate_pin, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Cell(46, 6, 'Date of Birth (dd/mm/yyyy):', $border1, 0, 'L');
         $dob = $studentData->date_of_birth;  
         $dob = $dob ? date_format(date_create($studentData->date_of_birth), 'd/m/Y') : null;
+        $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell(52, 6, $dob, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Ln(8);
 
-        $this->pdf->Cell(13, 6, 'School:', $border1, 0, 'L');
-        $this->pdf->Cell(182.9, 6, $studentData->previous_school, $border, 0, 'L');
+        $this->pdf->Cell(28, 6, 'Previous School:', $border1, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
+        $this->pdf->Cell(167.9, 6, $studentData->previous_school, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
+        $this->pdf->Ln(8);
+
+        $this->pdf->Cell(40, 6, 'Parent / Guardian Name:', $border1, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
+        $this->pdf->Cell(100, 6, $studentData->parent_name, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
+        $phoneMobileParent = $studentData->phone_mobile_parent ? $this->formatNumber($studentData->phone_mobile_parent) : null;
+        $this->pdf->Cell(28, 6, "Mobile Number:", 0, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
+        $this->pdf->Cell(27.9, 6, $phoneMobileParent, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Ln(8);
 
         $this->pdf->Cell(28, 6, 'Proposed Career:', $border1, 0, 'L');
+        $this->pdf->SetFont('Times', 'B', 12);
         $this->pdf->Cell(167.9, 6, $studentData->proposed_career, $border, 0, 'L');
+        $this->pdf->SetFont('Times', '', 11);
         $this->pdf->Ln(8);
 
         // $this->pdf->Cell(65, 6, 'TELEPHONE CONTACT: Parent: (h)', 0, 0, 'L');
@@ -1499,8 +1533,6 @@ class SixthFormApplication extends Controller
         $applicationPeriod = SixthFormApplicationPeriod::firstOrCreate([
             'year' => $request->input('year')
         ]);
-        // where('year', $request->input('year'))
-        // ->first();
 
         if($applicationPeriod){
             $applicationPeriod->locked = $request->input('locked');
@@ -1509,6 +1541,7 @@ class SixthFormApplication extends Controller
                 SixthFormApplicationPeriod::where('id', '>=', '1')
                 ->update(['current_year' => 0]);
                 $applicationPeriod->current_year = 1;
+                $applicationPeriod->locked = 0;
             }
             $applicationPeriod->save();
         }
