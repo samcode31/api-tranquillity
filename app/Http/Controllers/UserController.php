@@ -125,10 +125,11 @@ class UserController extends Controller
     {
         $employee_id = $request->input('employee_id');
         $length = 6;
-        $password = substr(str_shuffle(
-            str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x))
-        )),1,$length);
+        // $password = substr(str_shuffle(
+        //     str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x))
+        // )),1,$length);
         $userEmployee = UserEmployee::whereEmployeeId($employee_id)->first();
+        $password = $userEmployee->name;
         $userEmployee->password = Hash::make($password);
         $userEmployee->password_reset = 1;
         $userEmployee->remember_token = $password;

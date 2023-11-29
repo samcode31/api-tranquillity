@@ -463,4 +463,36 @@ class StudentTermMark extends Controller
 
         return $termsAvailable;
     }
+
+    public function delete(Request $request)
+    {
+        return ModelsStudentTermMark::where([
+            ['student_id', $request->student_id],
+            ['academic_term_id', $request->academic_term_id],
+            ['subject_id', $request->subject_id],
+        ])->delete();
+    }
+
+    public function update(Request $request)
+    {
+        $student_term_mark = ModelsStudentTermMark::where([
+            ['student_id', $request->student_id],
+            ['academic_term_id', $request->academic_term_id],
+            ['subject_id', $request->prev_subject_id],
+        ])->update([
+            'subject_id' => $request->new_subject_id,
+            'employee_id' => $request->employee_id
+        ]);
+
+        $student_stubject_comment = StudentSubjectComment::where([
+            ['student_id', $request->student_id],
+            ['academic_term_id', $request->academic_term_id],
+            ['subject_id', $request->prev_subject_id],
+        ])->update(['subject_id' => $request->new_subject_id]);
+
+        $data['student_term_mark'] = $student_term_mark;
+        $data['student_subject_comment'] = $student_stubject_comment;
+
+        return $data;
+    }
 }

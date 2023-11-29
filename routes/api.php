@@ -133,6 +133,10 @@ Route::post('/user-permissions', [UserPermissionsAssignment::class, 'store']);
 
 Route::post('/register-students', [StudentClassRegistration::class, 'register']);
 
+Route::delete('/student-term-mark', [StudentTermMark::class, 'delete']);
+
+Route::post('/student-term-mark-update', [StudentTermMark::class, 'update']);
+
 //---------------------Teacher Lessons ---------------------------------
 
 Route::get('/teacher-lessons/{id}', [TeacherLessonController::class, 'show']);
