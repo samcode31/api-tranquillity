@@ -29,6 +29,8 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Exception;
+use Illuminate\Support\Facades\DB;
+
 
 class StudentController extends Controller
 {
@@ -66,12 +68,9 @@ class StudentController extends Controller
 
         $academicYearId = $academicTerm ? $academicTerm->academic_year_id : null;
 
-        $id = $request->input('id');
-        $classId = $request->input('form_class_id');
+        $id = $request->input('student_id');
 
-        if($request->input('student_id')){
-            $id = $request->input('student_id');
-        }
+        $classId = $request->input('form_class_id');
 
         if(!$id){
             //new student without id
@@ -82,10 +81,47 @@ class StudentController extends Controller
             ->where('form_class_id', 'like', $form_level.'%')
             ->max('student_id');
             $id = $max + 1;
-            //return 'Last ID: '.$max.' New ID: '.$id;
+            //check if id was assigned to student removed 
+            $student = Student::withTrashed()
+            ->where('id', $id)->first();
+            while($student){
+                $id++;
+                $student = Student::withTrashed()
+                ->where('id', $id)->first();
+            }
+        }
+        
+        //check if record was deleted
+        $student = Student::withTrashed()
+        ->where('id', $id)
+        ->first();
+
+        if($id && $classId && $student->trashed())
+        {
+            //restore student
+            $student->restore();
+
+            StudentPersonalData::withTrashed()
+            ->where('student_id', $id)
+            ->restore();
+
+            StudentMedicalData::withTrashed()
+            ->where('student_id', $id)
+            ->restore();
+
+            StudentDataFile::withTrashed()
+            ->where('student_id', $id)
+            ->restore();
+
+            StudentClassRegistration::withTrashed()
+            ->where('student_id', $id)
+            ->restore();
+
         }
 
-        $student = Student::updateOrCreate(
+
+        $student = Student::withTrashed()
+        ->updateOrCreate(
             ['id' => $id],
             [
                 'first_name' => $request->first_name,
@@ -95,6 +131,7 @@ class StudentController extends Controller
                 'birth_certificate_pin' => $request->birth_certificate_pin
             ]
         );
+
 
         $studentPicture = StudentPicture::where('student_id', $student->id)
         ->orderBy('created_at', 'desc')
@@ -110,15 +147,18 @@ class StudentController extends Controller
 
         $data['student'] = $student;
 
-        $data['studentDataPersonal'] = StudentPersonalData::firstOrCreate(
+        $data['studentDataPersonal'] = StudentPersonalData::withTrashed()
+        ->firstOrCreate(
             ['student_id' => $id]
         );
 
-        $data['studentDataMedical'] = StudentMedicalData::firstOrCreate(
+        $data['studentDataMedical'] = StudentMedicalData::withTrashed()
+        ->firstOrCreate(
             ['student_id' => $id]
         );
 
-        $data['studentDataFile'] = StudentDataFile::firstOrCreate(
+        $data['studentDataFile'] = StudentDataFile::withTrashed()
+        ->firstOrCreate(
             ['student_id' => $id]
         );
 
@@ -129,10 +169,16 @@ class StudentController extends Controller
             );
         }
 
-        $studentClassRegistration = StudentClassRegistration::updateOrCreate(
-            ['student_id' => $id, 'academic_year_id' => $academicYearId],
-            ['form_class_id' => $classId, ]
-        );
+        if($classId)
+        {
+            $studentClassRegistration = StudentClassRegistration::updateOrCreate(
+                [
+                    'student_id' => $id, 
+                    'academic_year_id' => $academicYearId
+                ],
+                ['form_class_id' => $classId, ]
+            );
+        }
 
 
         $birthPin = $request->input('birth_certificate_pin');
@@ -338,6 +384,129 @@ class StudentController extends Controller
         return $currentStudents;
     }
 
+    public function showAll()
+    {
+        $data = array();
+        $academicTerm = AcademicTerm::whereIsCurrent(1)->first();
+        $academicYearId = $academicTerm ? $academicTerm->academic_year_id : null;
+        $date = date_create();
+
+        $studentsCurrent =  DB::table('students')
+        ->join(
+            'student_class_registrations',
+            'students.id',
+            'student_class_registrations.student_id'
+        )
+        ->select(
+            'students.id as student_id',
+            'students.first_name',
+            'students.last_name',
+            'students.gender',
+            'students.date_of_birth',
+            'students.birth_certificate_pin',
+            'student_class_registrations.form_class_id'
+        )
+        ->where('student_class_registrations.academic_year_id', $academicYearId)
+        ->orderBy('last_name')
+        ->orderBy('first_name')
+        ->get();
+
+        foreach($studentsCurrent as $student){
+            $studentPicture = StudentPicture::where('student_id', $student->student_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+            $pictureFile = null;
+
+            $age = null;
+            $dateOfBirth = $student->date_of_birth;
+            if($dateOfBirth){
+                $dateOfBirth = date_create($dateOfBirth);
+                $diff = $date->diff($dateOfBirth);
+                $age = $diff->y;
+            }
+
+            $student->age = $age;
+
+            if($studentPicture && File::exists( public_path('storage/pics/'.$studentPicture->file))){
+                $pictureFile = URL::asset('storage/pics/'.$studentPicture->file);
+            }
+
+            $student->picture = $pictureFile;
+
+            $studentHouse = StudentHouseAssignment::where('student_id', $student->student_id)
+            ->first();
+
+            $student->house_id = null;
+
+            if($studentHouse)
+            $student->house_id = $studentHouse->house_id;
+        }
+
+        $data['current_students'] = $studentsCurrent;
+        $data['current_students_count'] = sizeof($studentsCurrent);
+
+        $studentsArchived =  DB::table('students')
+        ->leftJoin(
+            'student_class_registrations',
+            function ($join) use ($academicYearId) {
+                $join->on('students.id', '=', 'student_class_registrations.student_id')
+                    ->where('student_class_registrations.academic_year_id', $academicYearId);
+        })
+        ->select(
+            'students.id as student_id',
+            'students.first_name',
+            'students.last_name',
+            'students.gender',
+            'students.date_of_birth',
+            'students.birth_certificate_pin',
+            'student_class_registrations.form_class_id'
+        )
+        ->whereNull('student_class_registrations.form_class_id')
+        ->orderBy('last_name')
+        ->orderBy('first_name')
+        ->get();
+
+        foreach($studentsArchived as $student){
+            $studentPicture = StudentPicture::where('student_id', $student->student_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+            $pictureFile = null;
+
+            $age = null;
+            $dateOfBirth = $student->date_of_birth;
+            if($dateOfBirth){
+                $dateOfBirth = date_create($dateOfBirth);
+                $diff = $date->diff($dateOfBirth);
+                $age = $diff->y;
+            }
+
+            $student->age = $age;
+
+            if($studentPicture && File::exists( public_path('storage/pics/'.$studentPicture->file))){
+                $pictureFile = URL::asset('storage/pics/'.$studentPicture->file);
+            }
+
+            $student->picture = $pictureFile;
+
+            $studentHouse = StudentHouseAssignment::where('student_id', $student->student_id)
+            ->first();
+
+            $student->house_id = null;
+
+            if($studentHouse)
+            $student->house_id = $studentHouse->house_id;
+        }
+
+        $data['archived_students'] = $studentsArchived;
+        $data['archived_students_count'] = sizeof($studentsArchived);
+
+        
+
+        return $data;
+    }
+
     public function delete(Request $request)
     {
         $data = [];
@@ -377,7 +546,8 @@ class StudentController extends Controller
     public function showDataFamily($id = null)
     {
         $data = [];
-        $studentFamilyData = StudentFamilyData::where('student_id', $id)->get();
+        $studentFamilyData = StudentFamilyData::withTrashed()
+        ->where('student_id', $id)->get();
         foreach($studentFamilyData as $record){
             $data[$record->relationship] = $record;
         }
@@ -386,7 +556,8 @@ class StudentController extends Controller
 
     public function showDataMedical($id = null)
     {
-        if($id) return StudentMedicalData::where('student_id', $id)->first();
+        if($id) return StudentMedicalData::withTrashed()
+        ->where('student_id', $id)->first();
 
         $studentMedicalData = new StudentMedicalData;
         $columns =  Schema::getColumnListing('student_data_medical');
@@ -397,14 +568,16 @@ class StudentController extends Controller
     }
 
     public function showDataFiles($id){
-        return StudentOtherData::where('student_id', $id)->first();
+        return StudentOtherData::withTrashed()
+        ->where('student_id', $id)->first();
     }
 
     public function storePersonalData (Request $request)
     {
         $student_id= $request->student_id;
 
-        $studentPersonalData = StudentPersonalData::updateOrCreate(
+        $studentPersonalData = StudentPersonalData::withTrashed()
+        ->updateOrCreate(
             ['student_id' => $student_id],
             $request->except(['picture'])
         );
@@ -416,7 +589,8 @@ class StudentController extends Controller
     {
         $student_id = $request->student_id;
 
-        $studentMedicalData = StudentMedicalData::updateOrCreate(
+        $studentMedicalData = StudentMedicalData::withTrashed()
+        ->updateOrCreate(
             ['student_id' => $student_id],
             $request->all()
         );
@@ -426,7 +600,8 @@ class StudentController extends Controller
 
     public function storeDataFamily (Request $request)
     {
-        $studentFamilyData = StudentFamilyData::updateOrCreate(
+        $studentFamilyData = StudentFamilyData::withTrashed()
+        ->updateOrCreate(
             [
                 'student_id' => $request->student_id,
                 'relationship' => $request->relationship
@@ -441,7 +616,8 @@ class StudentController extends Controller
     {
         $student_id = $request->student_id;
 
-        $studentOtherData = StudentOtherData::updateOrCreate(
+        $studentOtherData = StudentOtherData::withTrashed()
+        ->updateOrCreate(
             ['student_id' => $student_id],
             $request->all()
         );

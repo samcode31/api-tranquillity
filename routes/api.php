@@ -233,6 +233,8 @@ Route::get('/foreign-students', [ReportForeignStudentsController::class, 'show']
 
 Route::get('/students', [StudentController::class, 'show']);
 
+Route::get('/students-all', [StudentController::class, 'showAll']);
+
 Route::post('/student', [StudentController::class, 'store']);
 
 Route::delete('/student', [StudentController::class, 'delete']);
