@@ -415,7 +415,8 @@ class StudentController extends Controller
             $studentPicture = StudentPicture::where('student_id', $student->student_id)
             ->orderBy('created_at', 'desc')
             ->first();
-
+            $gender = $student->gender ? $student->gender[0] : null;
+            $student->gender = $gender;
             $pictureFile = null;
 
             $age = null;

@@ -11,6 +11,7 @@ class Pdf extends Fpdf
     public $widths;
     public $aligns;
     public $borders;
+    public $fills;
 
     public function SetWidths($w)
     {
@@ -28,6 +29,11 @@ class Pdf extends Fpdf
     {
         //Set the array of borders
         $this->borders=$b;
+    }
+
+    public function SetFills($f)
+    {
+        $this->fills=$f;
     }
 
     public function Row($data, $fill, $border=1)
@@ -61,17 +67,11 @@ class Pdf extends Fpdf
                 else $this->Text($this->GetX() - $teacherInitialOffset, $this->GetY() + (bcdiv($h,$nb) * $nbMax) - 2," ".$data[$i]);
                 $this->SetFont('Times','','10');
             }else{
-                // if(count($data) == 7 && ( $i == 2 || $i == 3 ))
-                // {
-                //     $this->SetFillColor(240, 240, 240);
-                //     $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],1,$a,true);
-                // }
-                // else
-                // {
-                //     //$this->SetFillColor(220, 220, 220);
-                //     $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],1,$a,$fill);
-                // }
-                $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],$this->borders[$i],$a,$fill);
+                if(isset($this->fills)){
+                    $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],$this->borders[$i],$a,$this->fills[$i]);
+                } else {
+                    $this->MultiCell($w,bcdiv($h,$nb,1),$data[$i],$this->borders[$i],$a,$fill);
+                }
             }
 
             $this->SetTextColor(0, 0, 0);

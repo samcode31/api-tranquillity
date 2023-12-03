@@ -16,6 +16,8 @@ use App\Models\StudentTermDetail;
 use App\Models\StudentTermMark as ModelsStudentTermMark;
 use App\Models\Subject;
 use App\Models\TermConfiguration;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ReportCard extends Controller
 {
@@ -26,10 +28,10 @@ class ReportCard extends Controller
         $this->pdf = $pdf;
     }
 
-    public function show($termId, $formClass, $student_id=null){
-        $logo = public_path('/imgs/logo.png');
-        $waterMark = public_path('/imgs/logo5%.png');
-        $data = [];
+    public function show(Request $request)
+    {
+        $termId = $request->input('termId');
+        $studentId = $request->input('studentId');
         $school = strtoupper(config('app.school_name'));
         $primaryRed = config('app.primary_red');
         $primaryGreen = config('app.primary_green');
@@ -38,6 +40,208 @@ class ReportCard extends Controller
         $secondaryGreen = config('app.secondary_green');
         $secondaryBlue = config('app.secondary_blue');
         $address = config('app.school_address');
+        $logo = public_path('/imgs/logo.png');
+        $waterMark = public_path('/imgs/logo5%.png');
+        $academicTerms = AcademicTerm::whereId($termId)
+        ->get();
+
+        if(!$termId){
+            $academicTerms = StudentTermDetail::join(
+                'academic_terms',
+                'student_term_details.academic_term_id',
+                'academic_terms.id'
+            )
+            ->select('academic_terms.*')
+            ->where('student_id', $studentId)
+            ->orderBy('academic_term_id')
+            ->get();
+        }
+
+        foreach($academicTerms as $academicTermId){
+
+            $data = $this->data($request, $academicTermId->id);
+            // return $data;
+            $this->pdf->SetMargins(10, 8);
+            $this->pdf->SetAutoPageBreak(false);
+    
+            foreach($data as $record){
+                $this->pdf->AddPage('P', 'Letter');
+                $this->pdf->Image($logo, 8, 6, 27);
+                $this->pdf->SetFont('Times', 'B', '20');
+                $this->pdf->Image($waterMark, 20, 70, 175);
+                $this->pdf->SetTextColor($primaryRed, $primaryGreen, $primaryBlue);
+                $this->pdf->SetX(30);
+                $this->pdf->MultiCell(0, 8, $school.' SCHOOL', 0, 'C' );
+                $this->pdf->SetFont('Times', 'I', 9);
+                $this->pdf->SetX(30);
+                $this->pdf->MultiCell(0, 6, $address, 0, 'C' );
+                $this->pdf->SetFont('Times', 'B', 12);
+                $this->pdf->Ln(3);
+    
+                $this->pdf->SetFont('Times', 'UBI', 16);
+                $this->pdf->MultiCell(0,6, utf8_decode($record['student']).' ', 0, 'C');
+                $this->pdf->Ln(3);
+    
+                $this->pdf->SetDrawColor(219, 219, 219);
+                $this->pdf->SetTextColor(0, 0, 0);
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(12, 6, "\tClass: ", 'TL', 0, 'L');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(68, 6, $record['form_class_id'], 'T', 0, 'L');
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(17, 6, "\tTerm ".$record['term'].": ", 'T', 0, 'L');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(53, 6, $record['term_period'], 'T', 0, 'L');
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(30, 6, "\tStudent Average: ", 'T', 0, 'R');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(15.9, 6, $record['term_details']['average'].'%', 'TR', 0, 'L');
+                $this->pdf->Ln();
+    
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(30, 6, "\tSubjects Passed: ", 'L', 0, 'L');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(50, 6, $record['term_details']['subjects_passed'], 0, 0, 'L');
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(28, 6, "\tClass Average: ", 0, 0, 'L');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(22, 6, $record['term_details']['class_average'].'%', 0, 0, 'L');
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(50, 6, "\tStudents in Class: ", 0, 0, 'R');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(15.9, 6, $record['class_total'], 'R', 0, 'L');
+                $this->pdf->Ln();
+    
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(31, 6, "\tSessions Absent: ", 'LB', 0, 'R');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(49, 6, $record['term_details']['sessions_absent'], 'B', 0, 'L');
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(26, 6, "\tSessions Late: ", 'B', 0, 'R');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(24, 6, $record['term_details']['sessions_late'], 'B', 0, 'L');
+                $this->pdf->SetFont('Times', '', 11);
+                $this->pdf->Cell(50, 6, "\tTotal Sessions: ", 'B', 0, 'R');
+                $this->pdf->SetFont('Times', 'B', 11);
+                $this->pdf->Cell(15.9, 6, $record['term_details']['total_sessions'], 'RB', 0, 'L');
+                $this->pdf->Ln(8);
+    
+                // $this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
+                //$this->pdf->SetDrawColor($primaryRed, $primaryGreen, $primaryBlue);
+                //$this->pdf->SetDrawColor(219, 219, 219);
+    
+                $this->pdf->SetWidths(array(45, 30, 15, 15, 90.9));
+                $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C'));
+                $this->pdf->SetBorders(array('TL',  1, 'TL', 'TLR', 'TR' ));
+                $this->pdf->SetFont('Times', 'B', 9);
+                $this->pdf->Row(array("", "MARKS", "Highest", "",  ""), false);
+    
+                $this->pdf->SetWidths(array(45, 15, 15, 15, 15, 90.9));
+                $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'C'));
+                $this->pdf->SetBorders(array('L', 'LR', 'LR', 'LR', 'LR', 'R' ));
+                $this->pdf->SetFont('Times', 'B', 9);
+                $this->pdf->SetFillColor(240,240,240);
+                
+                if($record['course_mark_only']){
+                    $this->pdf->SetFills(array(false, false, true, false, false, false, false));
+                    $this->pdf->Row(array("Subject", "Term\n %", "Exam\n %", "Course Mark", "Conduct", "Subject Teacher Comment"), false);
+                }
+                else{
+                    $this->pdf->SetFills(array(false, false, false, false, false, false, false));
+                    $this->pdf->Row(array("Subject", "Term\n %", "Exam\n %", "Exam Mark", "Conduct", "Subject Teacher Comment"), false);
+                }
+    
+                $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'L', 'L'));
+                $this->pdf->SetBorders(array(1, 1, 1, 1, 1, 1, 1 ));
+                $this->pdf->SetFont('Times', '', 9);
+                $this->pdf->SetFillColor(240, 240, 240);
+    
+                $subjectRecords = $record['marks'];
+                foreach($subjectRecords as $subjectRecord){
+                    if(sizeof($subjectRecord) != 0){
+                        $this->pdf->Row(array(
+                            $subjectRecord['subject'],
+                            $subjectRecord['course_mark'],
+                            $subjectRecord['exam_mark'],
+                            $subjectRecord['highest_mark'],
+                            $subjectRecord['conduct'],
+                            $subjectRecord['comment']."\n\t",
+                            $subjectRecord['teacher']
+                        ), false);
+                    }
+                   
+                }
+                $this->pdf->SetFillColor(255, 255, 255);
+                $this->pdf->Ln(2);
+                //$this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
+                $this->pdf->SetFont('Times','B','10');
+                $this->pdf->Cell(30,8,"A : Excellent", 'TLB', 0, 'C');
+                $this->pdf->Cell(30,8,"B : Very Good", 'TB', 0, 'C');
+                $this->pdf->Cell(30,8,"C : Good", 'TB', 0, 'C');
+                $this->pdf->Cell(30,8,"D : Unsatisfactory", 'TB', 0, 'C');
+                $this->pdf->Cell(30,8,"E : Poor", 'TB', 0, 'C');
+                $this->pdf->Cell(45.9,8,"NW : No Work Submitted", 'TBR', 0, 'C');
+    
+                $this->pdf->Ln(10);
+                $border = 0;
+                $this->pdf->SetFont('Times','B','10');
+                $this->pdf->Cell(98,5,"Form Teacher's Comments:", $border, "J");
+                $this->pdf->Cell(25,5,"Form Teachers:", $border);
+                $this->pdf->SetFont('Times','I','10');
+                $this->pdf->Cell(72.9,5,$record['term_details']['form_teachers'], $border,0,"L");
+                $this->pdf->Ln();
+    
+                $this->pdf->SetFont('Times','I','10');
+                $this->pdf->MultiCell(0, 5, $record['term_details']['form_teacher_comment']."\n\t", 1, "J");
+                $this->pdf->SetFont('Times','B','10');
+    
+                $border = 0;
+                $this->pdf->SetFont('Times','B','10');
+                $this->pdf->Cell(98,5,"Dean's Comments:", $border, "J");
+                $this->pdf->SetFont('Times','B','10');
+                $this->pdf->Cell(10,5,"Dean:",$border,0,"L");
+                $this->pdf->SetFont('Times','I','10');
+                $this->pdf->Cell(87.9,5,$record['term_details']['form_dean'], $border,0,"L");
+                $this->pdf->Ln();
+    
+                $this->pdf->SetFont('Times','I','10');
+                $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");
+    
+                $border = 0;
+                $this->pdf->SetFont('Times','B','10');
+                $this->pdf->Cell(25,7,"Vice Principal:", $border,0,"L");
+                $this->pdf->SetFont('Times','I','10');
+                $this->pdf->Cell(73,7,$record['term_details']['vice_principal'], $border,0,"L");
+                $this->pdf->SetFont('Times','B','10');
+                $this->pdf->Cell(18,7,"Principal:", $border,0,"L");
+                $this->pdf->SetFont('Times','I','10');
+                $this->pdf->Cell(79.9,7,$record['term_details']['principal'], $border,0,"L");
+                $this->pdf->Ln();
+    
+                $this->pdf->SetY(-20);
+                $this->pdf->SetFont('Times','B','10');
+                $this->pdf->Cell(0,5,"School Reopens on : ".date_format(date_create($record['term_details']['new_term_beginning']), 'jS M Y'), 0, 0, "C");
+    
+                $this->pdf->Ln(10);
+    
+                $this->pdf->SetY(-15);
+                $this->pdf->SetFont('Times','I',8);
+                $this->pdf->Cell(0,7,"This is an official document which is not valid without the ".$school." school stamp.",0,0,'C');
+            }
+        }
+
+        
+        $this->pdf->Output('I', 'ReportCard.pdf');
+        exit;
+    }
+
+    private function data($request, $termId)
+    {
+        $formClass = $request->input('formClass');
+        $student_id = $request->input('studentId');
+        
+        $data = array();
+        
         $formDean = null;
         $term = null;
         $pass_mark = 50;
@@ -49,12 +253,30 @@ class ReportCard extends Controller
         $course_mark_only = false;
         $exam_mark_only = false;
 
+        if(!$formClass){
+            $studentTermDetailRecord = StudentTermDetail::where([
+                ['academic_term_id', $termId],
+                ['student_id', $student_id]
+            ])
+            ->first();
+
+            $formClass = $studentTermDetailRecord ? $studentTermDetailRecord->form_class_id : null;
+        }
+
         $academic_term = AcademicTerm::whereId($termId)
         ->first();
-
+        
         $academic_year_id = $academic_term->academic_year_id;
 
         $term = $academic_term->term;
+        $termStart = $academic_term->term_start;
+        $termEnd = $academic_term->term_end;
+        $dateTimeTermStart = Carbon::parse($termStart);
+        $dateTimeTermEnd = Carbon::parse($termEnd);
+        $formattedTermStart = $dateTimeTermStart->isoFormat('DD MMM');
+        $formattedTermEnd = $dateTimeTermEnd->isoFormat('DD MMM YYYY');
+
+        $termPeriod = "$formattedTermStart - $formattedTermEnd";
 
         $formLevel = FormClass::whereId($formClass)->first()->form_level;
 
@@ -321,200 +543,17 @@ class ReportCard extends Controller
             $studentRecord['student_id'] = $studentId;
             $studentRecord['marks'] = $studentTermMarks;
             $studentRecord['term_details'] = $studentTermDetails;
+            $studentRecord['form_class_id'] = $formClass;
+            $studentRecord['term'] = $term;
+            $studentRecord['class_total'] = $class_total;
+            $studentRecord['course_mark_only'] = $course_mark_only;
+            $studentRecord['term_period'] = $termPeriod;
 
             array_push($data, $studentRecord);
 
         }
 
-        //return $data;
-
-        $this->pdf->SetMargins(10, 8);
-        $this->pdf->SetAutoPageBreak(false);
-
-        foreach($data as $record){
-            $this->pdf->AddPage('P', 'Letter');
-            $this->pdf->Image($logo, 8, 6, 27);
-            $this->pdf->SetFont('Times', 'B', '20');
-            $this->pdf->Image($waterMark, 20, 70, 175);
-            $this->pdf->SetTextColor($primaryRed, $primaryGreen, $primaryBlue);
-            $this->pdf->SetX(30);
-            $this->pdf->MultiCell(0, 8, $school.' SCHOOL', 0, 'C' );
-            $this->pdf->SetFont('Times', 'I', 9);
-            $this->pdf->SetX(30);
-            $this->pdf->MultiCell(0, 6, $address, 0, 'C' );
-            $this->pdf->SetFont('Times', 'B', 12);
-            $this->pdf->Ln(3);
-
-            $this->pdf->SetFont('Times', 'UBI', 16);
-            $this->pdf->MultiCell(0,6, utf8_decode($record['student']).' ', 0, 'C');
-            $this->pdf->Ln(3);
-
-            $this->pdf->SetDrawColor(219, 219, 219);
-            $this->pdf->SetTextColor(0, 0, 0);
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(12, 6, "\tClass: ", 'TL', 0, 'L');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(68, 6, $formClass, 'T', 0, 'L');
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(12, 6, "\tTerm: ", 'T', 0, 'L');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(38, 6, $term, 'T', 0, 'L');
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(50, 6, "\tStudent Average: ", 'T', 0, 'R');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(15.9, 6, $record['term_details']['average'].'%', 'TR', 0, 'L');
-            $this->pdf->Ln();
-
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(30, 6, "\tSubjects Passed: ", 'L', 0, 'L');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(50, 6, $record['term_details']['subjects_passed'], 0, 0, 'L');
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(28, 6, "\tClass Average: ", 0, 0, 'L');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(22, 6, $record['term_details']['class_average'].'%', 0, 0, 'L');
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(50, 6, "\tStudents in Class: ", 0, 0, 'R');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(15.9, 6, $class_total, 'R', 0, 'L');
-            $this->pdf->Ln();
-
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(31, 6, "\tSessions Absent: ", 'LB', 0, 'R');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(49, 6, $record['term_details']['sessions_absent'], 'B', 0, 'L');
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(26, 6, "\tSessions Late: ", 'B', 0, 'R');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(24, 6, $record['term_details']['sessions_late'], 'B', 0, 'L');
-            $this->pdf->SetFont('Times', '', 11);
-            $this->pdf->Cell(50, 6, "\tTotal Sessions: ", 'B', 0, 'R');
-            $this->pdf->SetFont('Times', 'B', 11);
-            $this->pdf->Cell(15.9, 6, $record['term_details']['total_sessions'], 'RB', 0, 'L');
-            $this->pdf->Ln(8);
-
-            $this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
-            //$this->pdf->SetDrawColor($primaryRed, $primaryGreen, $primaryBlue);
-            //$this->pdf->SetDrawColor(219, 219, 219);
-
-            $this->pdf->SetWidths(array(45, 30, 15, 15, 90.9));
-            $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C'));
-            $this->pdf->SetBorders(array('TL',  1, 'TL', 'TLR', 'TR' ));
-            $this->pdf->SetFont('Times', 'B', 9);
-            $this->pdf->Row(array("", "MARKS", "Highest", "",  ""), false);
-
-            $this->pdf->SetWidths(array(45, 15, 15, 15, 15, 90.9));
-            $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'C'));
-            $this->pdf->SetBorders(array('L', 'LR', 'LR', 'LR', 'LR', 'R' ));
-            $this->pdf->SetFont('Times', 'B', 9);
-            if($course_mark_only){
-                $this->pdf->Row(array("Subject", "Term\n %", "Exam\n %", "Course Mark", "Conduct", "Subject Teacher Comment"), false);
-            }
-            else{
-                $this->pdf->Row(array("Subject", "Term\n %", "Exam %", "Exam Mark", "Conduct", "Subject Teacher Comment"), false);
-            }
-
-            $this->pdf->SetAligns(array('L', 'C', 'C', 'C', 'C', 'L', 'L'));
-            $this->pdf->SetBorders(array(1, 1, 1, 1, 1, 1, 1 ));
-            $this->pdf->SetFont('Times', '', 9);
-            $this->pdf->SetFillColor(255, 255, 255);
-
-            $this->pdf->SetFillColor(51, 51, 255);
-            $subjectRecords = $record['marks'];
-            foreach($subjectRecords as $subjectRecord){
-                if(sizeof($subjectRecord) != 0){
-                    $this->pdf->Row(array(
-                        $subjectRecord['subject'],
-                        $subjectRecord['course_mark'],
-                        $subjectRecord['exam_mark'],
-                        $subjectRecord['highest_mark'],
-                        $subjectRecord['conduct'],
-                        $subjectRecord['comment']."\n\t",
-                        $subjectRecord['teacher']
-                    ), false);
-                }
-                else{
-                    $this->pdf->Row(array(
-                        ' ',
-                        ' ',
-                        ' ',
-                        ' ',
-                        ' ',
-                        ' ',
-                        ' ',
-                        ' '
-                    ), false);
-                }
-            }
-
-            $this->pdf->Ln(2);
-            //$this->pdf->SetFillColor($secondaryRed, $secondaryGreen, $secondaryBlue);
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(30,8,"A : Excellent", 'TLB', 0, 'C');
-            $this->pdf->Cell(30,8,"B : Very Good", 'TB', 0, 'C');
-            $this->pdf->Cell(30,8,"C : Good", 'TB', 0, 'C');
-            $this->pdf->Cell(30,8,"D : Unsatisfactory", 'TB', 0, 'C');
-            $this->pdf->Cell(30,8,"E : Poor", 'TB', 0, 'C');
-            $this->pdf->Cell(45.9,8,"NW : No Work Submitted", 'TBR', 0, 'C');
-
-            $this->pdf->Ln(10);
-            $border = 0;
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(98,5,"Form Teacher's Comments:", $border, "J");
-            $this->pdf->Cell(25,5,"Form Teachers:", $border);
-            $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(72.9,5,$record['term_details']['form_teachers'], $border,0,"L");
-            $this->pdf->Ln();
-
-            $this->pdf->SetFont('Times','I','10');
-            $this->pdf->MultiCell(0, 5, $record['term_details']['form_teacher_comment']."\n\t", 1, "J");
-            $this->pdf->SetFont('Times','B','10');
-
-            $border = 0;
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(98,5,"Dean's Comments:", $border, "J");
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(10,5,"Dean:",$border,0,"L");
-            $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(87.9,5,$record['term_details']['form_dean'], $border,0,"L");
-            $this->pdf->Ln();
-
-            $this->pdf->SetFont('Times','I','10');
-            $this->pdf->MultiCell(0, 5, $record['term_details']['dean_comment'], 1, "J");
-
-            $border = 0;
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(25,7,"Vice Principal:", $border,0,"L");
-            $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(73,7,$record['term_details']['vice_principal'], $border,0,"L");
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(18,7,"Principal:", $border,0,"L");
-            $this->pdf->SetFont('Times','I','10');
-            $this->pdf->Cell(79.9,7,$record['term_details']['principal'], $border,0,"L");
-            $this->pdf->Ln();
-
-            // $this->pdf->Cell(65, 10, "",'B');
-            // $this->pdf->Cell(65.9, 10, "", 0);
-            // $this->pdf->Cell(65, 10, "", 'B');
-            // $this->pdf->Ln();
-
-            // $this->pdf->SetFont('Times','I','8');
-            // $this->pdf->Cell(65, 8, "Dean's Signature",0, 0,"C");
-            // $this->pdf->Cell(65.9, 8, "", 0, 0, "C");
-            // $this->pdf->Cell(65, 8, "Form Teacher's Signature", 0, 0, "C");
-
-            $this->pdf->SetY(-20);
-            $this->pdf->SetFont('Times','B','10');
-            $this->pdf->Cell(0,5,"School Reopens on : ".date_format(date_create($record['term_details']['new_term_beginning']), 'jS M Y'), 0, 0, "C");
-
-            $this->pdf->Ln(10);
-
-            $this->pdf->SetY(-15);
-            $this->pdf->SetFont('Times','I',8);
-            $this->pdf->Cell(0,7,"This is an official document which is not valid without the ".$school." school stamp.",0,0,'C');
-            }
-            $this->pdf->Output('I', 'ReportCard.pdf');
-        exit;
+        return $data;
     }
 
     private function studentPerformance($student_id, $academic_term_id, $test_id=1, $pass_mark){

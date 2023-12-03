@@ -193,7 +193,7 @@ Route::post('/term-details', [StudentTermDetail::class, 'store']);
 
 //----------------------------Print / View Reports ---------------------------
 
-Route::get('/report-card/{termId}/{classId?}/{studentId?}', [ReportCard::class, 'show']);
+Route::get('/report-card', [ReportCard::class, 'show']);
 
 Route::get('/class-list/{class_id}/{yearId}', [ClassList::class, 'show']);
 
