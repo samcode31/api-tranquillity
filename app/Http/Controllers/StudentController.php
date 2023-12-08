@@ -96,7 +96,7 @@ class StudentController extends Controller
         ->where('id', $id)
         ->first();
 
-        if($id && $classId && $student->trashed())
+        if($id && $classId && $student)
         {
             //restore student
             $student->restore();
