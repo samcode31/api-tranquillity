@@ -59,8 +59,7 @@ class ClassList extends Controller
            
             $record['student_id'] = $student->student_id;
             $record['form_class_id'] = $student->form_class_id;
-            $student = $student->student;
-            $gender = $student->gender[0];
+            $gender = $student->gender ? $student->gender[0]: null;
             if($gender == 'F') $females++;
             if($gender == 'M') $males++;
             $record['first_name'] = $student->first_name;
