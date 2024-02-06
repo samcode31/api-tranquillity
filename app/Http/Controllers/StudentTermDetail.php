@@ -49,14 +49,29 @@ class StudentTermDetail extends Controller
 
         }
 
-        $records = ModelsStudentTermDetail::join('students', 'students.id', 'student_term_details.student_id')
-        ->join('student_dean_comments', 'student_dean_comments.student_id', 'student_term_details.student_id')
-        ->select('student_term_details.*','students.first_name', 'students.last_name', 'students.picture', 'student_dean_comments.comment as dean_comment')
+        $records = ModelsStudentTermDetail::join(
+            'students', 
+            'students.id', 
+            'student_term_details.student_id'
+        )
+        ->join(
+            'student_dean_comments', 
+            'student_dean_comments.student_id', 
+            'student_term_details.student_id'
+        )
+        ->select(
+            'student_term_details.*',
+            'students.first_name', 
+            'students.last_name', 
+            'students.picture', 
+            'student_dean_comments.comment as dean_comment'
+        )
         ->where([
             ['student_term_details.academic_term_id', $termId],
             ['student_dean_comments.academic_term_id', $termId],
             ['student_term_details.form_class_id', $formClass]
         ])
+        ->whereNull('students.deleted_at')
         ->orderBy('last_name')
         ->get();
 

@@ -407,6 +407,8 @@ class StudentController extends Controller
             'student_class_registrations.form_class_id'
         )
         ->where('student_class_registrations.academic_year_id', $academicYearId)
+        ->whereNull('student_class_registrations.deleted_at')
+        ->whereNull('students.deleted_at')
         ->orderBy('last_name')
         ->orderBy('first_name')
         ->get();
@@ -464,6 +466,8 @@ class StudentController extends Controller
             'student_class_registrations.form_class_id'
         )
         ->whereNull('student_class_registrations.form_class_id')
+        ->orWhereNotNull('students.deleted_at')
+        ->orWhereNotNull('student_class_registrations.deleted_at')
         ->orderBy('last_name')
         ->orderBy('first_name')
         ->get();
@@ -513,18 +517,23 @@ class StudentController extends Controller
         $data = [];
         $academicTerm = AcademicTerm::whereIsCurrent(1)->first();
         $academic_year_id = $academicTerm->academic_year_id;
-        //return $academic_year_id;
-        $student_class_registration = StudentClassRegistration::where([
+        // return $academic_year_id;
+        $student_class_registration = StudentClassRegistration::withTrashed()
+        ->where([
             ['academic_year_id', $academic_year_id],
             ['student_id', $request->student_id]
         ])
         ->first();
+        
         if($student_class_registration) $student_class_registration->delete();
 
         if($student_class_registration && $student_class_registration->trashed()){
             $data['student_class_registration'] = $student_class_registration;
             //return 'class registration deleted';
-            $student = Student::whereId($request->student_id)->first();
+            $student = Student::withTrashed()
+            ->whereId($request->student_id)
+            ->first();
+
             $student->student_status_id = $request->student_status_id;
             $student->save();
             if($student->wasChanged('student_status_id')){
