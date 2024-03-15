@@ -556,7 +556,8 @@ class ReportCard extends Controller
         return $data;
     }
 
-    private function studentPerformance($student_id, $academic_term_id, $test_id=1, $pass_mark){
+    private function studentPerformance($student_id, $academic_term_id, $test_id, $pass_mark)
+    {
         $average = 0;
         $total_subjects = 0;
         $total_marks = 0;
@@ -587,7 +588,8 @@ class ReportCard extends Controller
         //return $student_id;
     }
 
-    private function classTermSummary($students, $academic_term_id, $test_id, $pass_mark){
+    private function classTermSummary($students, $academic_term_id, $test_id, $pass_mark)
+    {
         $class_summaries = [];
         foreach($students as $student){
             $student_average = [];
@@ -621,7 +623,8 @@ class ReportCard extends Controller
 
     }
 
-    private function sort($array){
+    private function sort($array)
+    {
         $l=0; $m=0; $keyId=0; $keyAvg=0; $keyPass=0; $keyArray=[]; $n = sizeof($array);
         for($l = 1; $l < $n; $l++){
             $keyAvg = $array[$l]['average'];
@@ -640,7 +643,8 @@ class ReportCard extends Controller
         return $array;
     }
 
-    private function classAverage($array){
+    private function classAverage($array)
+    {
         $recordCount = 0;
         $totalAverage = 0;
         foreach($array as $record){
@@ -651,7 +655,8 @@ class ReportCard extends Controller
         return 0;
     }
 
-    private function rank($average, $array){
+    private function rank($average, $array)
+    {
         foreach($array as $key => $value){
             if($average == $value['average']){
                 return $key+1;
@@ -673,12 +678,13 @@ class ReportCard extends Controller
         ->max('mark');
     }
 
-    public function terms(){
+    public function terms()
+    {
         $data = [];
 
         $distinct_academic_terms = ModelsStudentTermMark::select('academic_term_id')
         ->distinct()
-        ->orderBy('academic_term_id')
+        ->orderBy('academic_term_id', 'desc')
         ->get();
 
         foreach($distinct_academic_terms as $distinct_academic_term){
@@ -690,11 +696,19 @@ class ReportCard extends Controller
             $academic_year_id = $academic_term->academic_year_id;
             $academic_year = AcademicYear::where('id', $academic_year_id)
             ->first();
+
+            $studentClassRegistrations = StudentClassRegistration::where('academic_year_id', $academic_year_id)
+            ->select('form_class_id')
+            ->distinct()
+            ->orderBy('form_class_id')
+            ->pluck('form_class_id');
+
             $year_start = date_format(date_create($academic_year->start), "Y");
             $year_end = date_format(date_create($academic_year->end), "Y");
             $record['academic_term_id'] = $academic_term_id;
             $record['academic_year'] = $year_start.'-'.$year_end;
             $record['term'] = $term;
+            $record['form_classes'] = $studentClassRegistrations;
             array_push($data, $record);
         }
 
