@@ -45,7 +45,38 @@ class ReportCard extends Controller
         $academicTerms = AcademicTerm::whereId($termId)
         ->get();
 
+        $studentTermDetailRecords = StudentTermDetail::where('student_id', $studentId)
+        ->get();
+
+        if(sizeof($studentTermDetailRecords) == 0)
+        {
+            //new student
+            $currentAcademicTermRecord = AcademicTerm::where('is_current', 1)
+            ->first();
+
+            $currentAcademicTermId = $currentAcademicTermRecord ? $currentAcademicTermRecord->id : null;
+            $currentAcademicYearId = $currentAcademicTermRecord ? $currentAcademicTermRecord->academic_year_id : null;
+
+            $studentClassRegistrationRecord = StudentClassRegistration::where([
+                ['student_id', $studentId],
+                ['academic_year_id', $currentAcademicYearId]
+            ])
+            ->first();
+
+            $studentClassRegistration = $studentClassRegistrationRecord ? $studentClassRegistrationRecord->form_class_id : null;
+
+            StudentTermDetail::firstOrCreate(
+                [
+                    'student_id' => $studentId,
+                    'academic_term_id' => $currentAcademicTermId,
+                    'form_class_id' => $studentClassRegistration
+                ]
+                );
+        }
+
         if(!$termId){
+            //all report cards
+
             $academicTerms = StudentTermDetail::join(
                 'academic_terms',
                 'student_term_details.academic_term_id',
