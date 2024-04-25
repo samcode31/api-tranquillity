@@ -65,13 +65,16 @@ class ReportCard extends Controller
 
             $studentClassRegistration = $studentClassRegistrationRecord ? $studentClassRegistrationRecord->form_class_id : null;
 
-            StudentTermDetail::firstOrCreate(
-                [
-                    'student_id' => $studentId,
-                    'academic_term_id' => $currentAcademicTermId,
-                    'form_class_id' => $studentClassRegistration
-                ]
+           if($studentId )
+           {
+               StudentTermDetail::firstOrCreate(
+                   [
+                       'student_id' => $studentId,
+                       'academic_term_id' => $currentAcademicTermId,
+                       'form_class_id' => $studentClassRegistration
+                   ]
                 );
+           }
         }
 
         if(!$termId){
