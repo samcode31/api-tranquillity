@@ -258,6 +258,8 @@ class StudentController extends Controller
             $birthPin = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(6,$i)->getValue();
             $dateOfBirth = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(7,$i)->getValue();
 
+            if(!$id) continue;
+
             try{
                 $student = Student::updateOrCreate(
                     ['id' => $id],
@@ -276,6 +278,8 @@ class StudentController extends Controller
                 $errorMsg['error'] = $e;
                 $errors[] = $errorMsg;
             }
+
+            if(!Student::where('id', $id)->first()) continue;
             
 
             StudentPersonalData::firstOrCreate(
