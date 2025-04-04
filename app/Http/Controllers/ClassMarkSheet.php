@@ -89,7 +89,8 @@ class ClassMarkSheet extends Controller
         ->select('student_id', 'sessions_absent', 'sessions_late')
         ->get();
 
-        foreach($students_registered as $student){
+        foreach($students_registered as $student)
+        {
             $student_record = [];  $student_term_marks = [];
             $total_marks = 0; $total_subjects = 0;
 
@@ -159,9 +160,24 @@ class ClassMarkSheet extends Controller
         $data = $this->sort($data);
         $this->pdf->AliasNbPages();
         $this->pdf->SetMargins(10, 10);
-        $this->pdf->SetAutoPageBreak(false);        
+        $this->pdf->SetAutoPageBreak(false); 
+        
+        if(sizeof($data) == 0)
+        {
+            // $this->pdf->AddPage('L', 'Legal');
+            // $this->pdf->SetFont('Times','B',14);
+            // $this->pdf->Cell(0, 10, 'No Students Registered', 0, 1, 'C');
+            // $this->pdf->SetY(-15);
+            // $this->pdf->SetFont('Times','I',8);
+            // $this->pdf->Cell(88, 6, 'Report Generated: '.date("d/m/Y h:i:sa"), 0, 0, 'L');
+            // $this->pdf->Cell(88, 6, 'Page '.$this->pdf->PageNo().'/{nb}', 0, 0, 'R');
+            // $this->pdf->Output('I', 'Class Summary Mark Sheet.pdf');
+            return 'No Students Registered';
 
-        foreach($data as $key => $record){
+        }
+
+        foreach($data as $key => $record)
+        {
             if($key%$max_rows==0){
                 if($key!=0){
                     $this->pdf->SetY(-15);
