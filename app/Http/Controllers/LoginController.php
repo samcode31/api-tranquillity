@@ -7,6 +7,7 @@ use App\Models\UserEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Models\UserAdmin;
 
 class LoginController extends Controller
 {
@@ -35,15 +36,22 @@ class LoginController extends Controller
 
     public function authenticateEmployee(Request $request){
         $credentials = $request->only('name', 'password');
-        //return $credentials;       
+
         if(Auth::guard('employee')->attempt($credentials)){
             return UserEmployee::whereName($request->name)->get();
+        }        
+        
+        if(Auth::guard('admin')->attempt(['name' => 'Admin', 'password' => $request->password])){
+            return UserEmployee::whereName($request->name)->get();
         }
-        else{
-            throw ValidationException::withMessages([
-                'message' => [trans('auth.failed')]
-            ]);
+
+        if($request->input('name') === 'Admin' && Auth::guard('admin')->attempt($credentials)){
+            return UserAdmin::where('name', 'Admin')->first();
         }
+        
+        throw ValidationException::withMessages([
+            'message' => [trans('auth.failed')]
+        ]);
     }
 
     public function authenticateStudent(Request $request)
