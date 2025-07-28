@@ -51,6 +51,7 @@ use App\Models\RegionalCorporation;
 use App\Models\LivingStatus;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\ClassMarkSheetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -228,6 +229,8 @@ Route::get('/asr', [ASRController::class, 'show']);
 Route::get('/student-health', [ReportHealthController::class, 'show']);
 
 Route::get('/foreign-students', [ReportForeignStudentsController::class, 'show']);
+
+Route::get('/class-marksheet-spreadsheet', [ClassMarkSheetController::class, 'download']);
 
 //----------------------------- Students --------------------------------------
 

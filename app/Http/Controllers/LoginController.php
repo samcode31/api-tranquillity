@@ -37,18 +37,20 @@ class LoginController extends Controller
     public function authenticateEmployee(Request $request){
         $credentials = $request->only('name', 'password');
 
-        if(Auth::guard('employee')->attempt($credentials)){
-            return UserEmployee::whereName($request->name)->get();
-        }        
-        
-        if(Auth::guard('admin')->attempt(['name' => 'Admin', 'password' => $request->password])){
-            return UserEmployee::whereName($request->name)->get();
-        }
-
         if($request->input('name') === 'Admin' && Auth::guard('admin')->attempt($credentials)){
             return UserAdmin::where('name', 'Admin')->first();
         }
+
+        if(Auth::guard('employee')->attempt($credentials)){
+            return UserEmployee::whereName($request->name)->first();
+        }        
         
+        if(Auth::guard('admin')->attempt(['name' => 'Admin', 'password' => $request->password])){
+            $userEmployee = UserEmployee::whereName($request->name)->first();
+            if(!$userEmployee) abort(403, 'Employee not found');
+            return $userEmployee;
+        }
+
         throw ValidationException::withMessages([
             'message' => [trans('auth.failed')]
         ]);

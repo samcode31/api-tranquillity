@@ -307,7 +307,7 @@ class ClassMarkSheet extends Controller
         $data = [];
         $distinct_academic_terms = StudentTermMark::select('academic_term_id')
         ->distinct()
-        ->orderBy('academic_term_id')
+        ->orderBy('academic_term_id', 'desc')
         ->get();
 
         foreach($distinct_academic_terms as $distinct_academic_term){
