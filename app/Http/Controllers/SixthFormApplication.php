@@ -107,10 +107,14 @@ class SixthFormApplication extends Controller
                 URL::asset('storage/'.$application->recommendation_1);
             }
 
+            $applicationCSECGrades = SixthFormApplicationGrade::where('application_id', $application->application_id)
+            ->get();
+
             if(
                 $application->first_name &&
                 $application->last_name &&
-                $application->birth_certificate_pin
+                $application->birth_certificate_pin &&
+                sizeof($applicationCSECGrades) > 0
             ){
                 $data[] = $application;
             }
@@ -1571,6 +1575,238 @@ class SixthFormApplication extends Controller
     {
         return SixthFormApplicationPeriod::where('current_year', 1)
         ->first();
+    }
+
+    public function allApplications ($year)
+    {
+        $data = $this->allApplicationsData($year);
+        // return $data;
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            "Application ID",
+            "Year",
+            "First Name",
+            "Last Name",
+            "Email",
+            "Phone (Mobile)",
+            "Address",
+            "Birth Certificate Pin",
+            "Date of Birth",
+            "Previous School",
+            "Parent Name",
+            "Parent Mobile Phone",
+            "Proposed Career",
+            "CSEC Grades",
+            "Line 1 (1st Choice)",
+            "Line 2 (1st Choice)",
+            "Line 3 (1st Choice)",
+            "Line 1 (2nd Choice)",
+            "Line 2 (2nd Choice)",
+            "Line 3 (2nd Choice)",
+            "Status",
+            'Time Stamp'
+        ];
+
+        $sheet->fromArray($headers, NULL, 'A1');
+        $sheet->fromArray($data, NULL, 'A2');
+
+        // $sheet->freezePane('C2');
+        $highestColumn = $sheet->getHighestColumn();
+        $sheet->getRowDimension('1')->setRowHeight(25);
+
+        $styleArray = [
+            'font' => [
+                'bold' => true,
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => [
+                    'argb' => 'FFBFBFBF',
+                ]
+            ]
+        ];
+
+        $sheet->getStyle('A1:'.$highestColumn.'1')->applyFromArray($styleArray);
+
+        $highestRow = $sheet->getHighestRow();
+        foreach($sheet->getColumnIterator() as $col){            
+            $sheet->getColumnDimension($col->getColumnIndex())->setAutoSize(true);
+            for($row = 1; $row <= $highestRow; $row++){
+                $sheet->getStyle($col->getColumnIndex().$row.':'.$col->getColumnIndex().$row)->getAlignment()
+                ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+                // $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
+                if($row == 1){
+                    $value = $sheet->getCell($col->getColumnIndex().$row)->getValue();
+                    if(
+                        $value == 'Application ID' ||
+                        $value == 'Birth Certificate Pin' ||
+                        $value == 'Phone (Mobile)' ||
+                        $value == 'Phone(C) (Parent)' ||
+                        $value == 'Year'
+                    ){
+                        $sheet->getStyle($col->getColumnIndex().$row.':'.$col->getColumnIndex().$highestRow)->getAlignment()
+                        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                    } 
+                }
+                
+            }
+                       
+        }
+
+        $sheet->freezePane('E2');
+
+        $sheet->setTitle($year." Form 6 Applications");
+        $file = $year." Sixth Form Applications_".date('Ymdhis').".xlsx";
+        $filePath = storage_path('app/public/'.$file);
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($filePath);
+        return response()->download($filePath, $file);
+    }
+
+     private function allApplicationsData ($year) 
+    {
+        $data = array();
+
+        $applications = ModelsSixthFormApplication::where('year', $year)
+        ->select(
+            'application_id',
+            'year',
+            'first_name',
+            'last_name',
+            'email',
+            'phone_mobile',
+            'address',
+            'birth_certificate_pin',
+            'date_of_birth',
+            'previous_school',
+            'parent_name',
+            'phone_mobile_parent',
+            'proposed_career',
+            'status',
+            'created_at'
+        )
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        // return $applications;
+
+        foreach($applications as $application)
+        {
+            $applicationData = array();
+            $applicationCSECGrades = SixthFormApplicationGrade::join(
+                'csec_subjects',
+                'csec_subjects.id',
+                'sixth_form_application_grades.subject_id'
+            )
+            ->where('application_id', $application->application_id)
+           
+            ->get();
+
+            $applicationSubjectChoices = SixthFormApplicationSubjects::where('application_id', $application->application_id)
+             ->select(
+                'subject_title',
+                'line',
+                'choice'
+            )
+            ->orderBy('choice')
+            ->orderBy('line')
+            ->get();
+
+            if(sizeof($applicationSubjectChoices) < 6)
+            {
+                //incomplete application
+                // continue;
+                $option1 = [1 => null, 2 => null, 3 => null];
+                $option2 = [1 => null, 2 => null, 3 => null];
+                foreach($applicationSubjectChoices as $subjectChoice){
+                    if($subjectChoice->choice == 1){
+                        $option1[$subjectChoice->line] = $subjectChoice->subject_title;
+                    }
+                    if($subjectChoice->choice == 2){
+                        $option2[$subjectChoice->line] = $subjectChoice->subject_title;
+                    }
+                }
+
+                foreach($option1 as $index => $option)
+                {
+                    if(!$option)
+                    {
+                        $applicationSubjectChoices[] = new SixthFormApplicationSubjects([
+                            'line' => $index,
+                            'choice' => 1,
+                            'subject_title' => null
+                        ]);
+                    }
+                }
+
+                foreach($option2 as $index => $option)
+                {
+                    if(!$option)
+                    {
+                        $applicationSubjectChoices[] = new SixthFormApplicationSubjects([
+                            'line' => $index,
+                            'choice' => 2,
+                            'subject_title' => null
+                        ]);
+                    }
+                }
+                
+            }
+
+            
+            if(
+                $application->first_name &&
+                $application->last_name &&
+                // $application->phone_mobile &&
+                $application->birth_certificate_pin &&
+                // $application->date_of_birth &&
+                sizeof($applicationCSECGrades) > 0 &&
+                sizeof($applicationSubjectChoices) > 0
+
+            ){
+                // $application->csec_grades = implode(",", $applicationCSECGrades);
+                // if($application->application_id == 'TSS9UEMF5' ) return $applicationSubjectChoices;
+                $applicationData[] = $application->application_id;
+                $applicationData[] = $application->year;
+                $applicationData[] = $application->first_name;
+                $applicationData[] = $application->last_name;
+                $applicationData[] = $application->email;
+                $applicationData[] = $this->formatNumber($application->phone_mobile);
+                $applicationData[] = $application->address;
+                $applicationData[] = $application->birth_certificate_pin;
+                $applicationData[] = $application->date_of_birth;
+                $applicationData[] = $application->previous_school;
+                $applicationData[] = $application->parent_name;
+                $applicationData[] = $this->formatNumber($application->phone_mobile_parent);
+                $applicationData[] = $application->proposed_career;
+                
+                $csecGrades = null;
+                foreach($applicationCSECGrades as $grade){
+                    $csecGrades .= $grade->title." ".$grade->grade."(".$grade->profiles."), ";
+                }
+                $applicationData[] = $csecGrades;
+
+                for($i=1; $i<3; $i++){
+                    for($j=1; $j<4; $j++){
+                        foreach($applicationSubjectChoices as $subjectChoice){
+                            if($subjectChoice->line == $j && $subjectChoice->choice == $i){
+                                $applicationData[] = $subjectChoice->subject_title;
+                            }
+                        }
+                       
+                    }
+                    
+                }
+                // $application->choice_1_line_1 = 
+                $applicationData[] = $application->status;
+                $applicationData[] = date("Y-m-d H:i", strtotime($application->created_at));
+                $data[] = $applicationData;
+            }
+        }
+
+        return $data;
     }
     
 }

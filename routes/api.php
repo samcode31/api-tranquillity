@@ -471,6 +471,11 @@ Route::get(
     [SixthFormApplication::class, 'currentPeriod']
 );
 
+Route::get(
+    '/sixth-form-applications-all/{year}',
+    [SixthFormApplication::class, 'allApplications']
+);
+
 
 /*
 |--------------------------------------------------------------------------
