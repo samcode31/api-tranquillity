@@ -48,6 +48,7 @@ class StudentClassRegistration extends Controller
         for($i = 2; $i <= $rows; $i++){            
             $student_id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(1,$i)->getValue();
             $form_class_id = $spreadsheet->getActiveSheet()->getCellByColumnAndRow(4,$i)->getValue();
+            if(!$student_id || !$form_class_id) continue;
             ModelsStudentClassRegistration::updateOrCreate(
                 ['student_id' => $student_id, 'academic_year_id' => $academic_year_id ],
                 [
