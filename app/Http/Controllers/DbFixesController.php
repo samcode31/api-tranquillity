@@ -21,15 +21,17 @@ class DbFixesController extends Controller
         }
         // return $academicYearId;
 
-        $studentClassRegistrations = StudentClassRegistration::where([
-            ['academic_year_id', $academicYearId],
-            ['form_class_id', 'like', '4%']
-        ])->get();
+        // $studentClassRegistrations = StudentClassRegistration::where([
+        //     ['academic_year_id', $academicYearId],
+        //     // ['form_class_id', 'like', '4%']
+        // ])->get();
+
+        // return $studentClassRegistrations;
 
 
         $studentTermDetails = StudentTermDetail::where([
             ['academic_term_id', $academicTermId],
-            ['form_class_id', 'like', '4%']
+            // ['form_class_id', 'like', '4%']
         ])->get();
 
         $updates = 0;
